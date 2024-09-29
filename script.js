@@ -88,21 +88,25 @@ document.addEventListener('keydown', (event) => {
 
   switch (event.key) {
     case 'ArrowUp':
+      event.preventDefault(); //default behavior changes the number of the cell
       if (row > 0) {
         selectCell(row - 1, col);
       }
       break;
     case 'ArrowDown':
+      event.preventDefault;
       if (row < 8) {
         selectCell(row + 1, col);
       }
       break;
     case 'ArrowLeft':
+      event.preventDefault;
       if (col > 0) {
         selectCell(row, col - 1);
       }
       break;
     case 'ArrowRight':
+      event.preventDefault;
       if (col < 8) {
         selectCell(row, col + 1);
       }
