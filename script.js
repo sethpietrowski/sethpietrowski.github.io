@@ -1,3 +1,5 @@
+let selectedCell = null; //keep track of the currently selected cell
+
 // Create a Sudoku grid
 const sudokuBoard = document.getElementById("sudoku-board");
 const newGameButton = document.getElementById("new-game");
@@ -16,7 +18,7 @@ let board = [
     [0, 0, 0, 0, 8, 0, 0, 7, 9]
 ];
 
-const solution = [
+/* const solution = [
     [5, 3, 4, 6, 7, 8, 9, 1, 2],
     [6, 7, 2, 1, 9, 5, 3, 4, 8],
     [1, 9, 8, 3, 4, 2, 5, 6, 7],
@@ -26,7 +28,7 @@ const solution = [
     [9, 6, 1, 5, 3, 7, 2, 8, 4],
     [2, 8, 7, 4, 1, 9, 6, 3, 5],
     [3, 4, 5, 2, 8, 6, 1, 7, 9]
-  ];
+  ]; */
 
 // Function to initialize the Sudoku board
 function createBoard() {
@@ -49,14 +51,76 @@ function createBoard() {
                 cell.disabled = true; // Lock original numbers
             } else {
                 cell.value = '';
+                cell.readOnly = true; //Make editable but not typable
             }
             
             cell.setAttribute('data-row', row);
             cell.setAttribute('data-col', col);
 
+            //Hande selecting cells
+            cell.addEventListener('click', () => {
+              if (selectedCell) {
+                selectedCell.classList.remove('selected');
+              }
+              selectedCell = cell;
+              selectedCell.classList.add('selected');
+            })
+
             sudokuBoard.appendChild(cell);
         }
     }
+}
+
+// for handling number button clicks
+document.querySelectorAll('.number-button').forEach(button => {
+  button.addEventListener('click', () => {
+    if (selectedCell) {
+      selectedCell.value = button.getAttribute('data-value');
+    }
+  });
+});
+
+// Arrow key navigation
+
+document.addEventListener('keydown', (event) => {
+  if (!selectedCell) return;
+
+  const row = parseInt(selectedCell.getAttribute('data-row'));
+  const col = parseInt(selectedCell.getAttribute('data-col'));
+
+  switch (event.key) {
+    case 'ArrowUp':
+      if (row > 0) {
+        selectedCell(row - 1, col);
+      }
+      break;
+    case 'ArrowDown':
+      if (row < 8) {
+        selectedCell(row + 1, col);
+      }
+      break;
+    case 'ArrowLeft':
+      if (col > 0) {
+        selectedCell(row, col - 1);
+      }
+      break;
+    case 'ArrowRight':
+      if (col < 8) {
+        selectedCell(row, col + 1);
+      }
+      break;
+  
+      
+
+  }
+});
+
+function selectCell(row, col) {
+  if (selectedCell) {
+    selectedCell.classList.remove('selected');
+  }
+  selectedCell = document.querySelector(`input[data-row='${row}'][data-col='${col}']`);
+  selectedCell.classList.add('selected');
 }
 
 // Function to check if the solution is correct
