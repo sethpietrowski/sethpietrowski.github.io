@@ -6,7 +6,7 @@ const newGameButton = document.getElementById("new-game");
 const checkSolutionButton = document.getElementById("check-solution");
 
 let board = [
-    // This is an example puzzle; you can replace it with a puzzle generator.
+    // Puzzle to eventually be replaced with generator
     [5, 3, 0, 0, 7, 0, 0, 0, 0],
     [6, 0, 0, 1, 9, 5, 0, 0, 0],
     [0, 9, 8, 0, 0, 0, 0, 6, 0],
@@ -18,7 +18,7 @@ let board = [
     [0, 0, 0, 0, 8, 0, 0, 7, 9]
 ];
 
-/* const solution = [
+const solution = [
     [5, 3, 4, 6, 7, 8, 9, 1, 2],
     [6, 7, 2, 1, 9, 5, 3, 4, 8],
     [1, 9, 8, 3, 4, 2, 5, 6, 7],
@@ -28,12 +28,10 @@ let board = [
     [9, 6, 1, 5, 3, 7, 2, 8, 4],
     [2, 8, 7, 4, 1, 9, 6, 3, 5],
     [3, 4, 5, 2, 8, 6, 1, 7, 9]
-  ]; */
+]; 
 
 // Function to initialize the Sudoku board
 function createBoard() {
-    
-
     // Clear previous cells
     sudokuBoard.innerHTML = '';
 
@@ -64,6 +62,7 @@ function createBoard() {
               }
               selectedCell = cell;
               selectedCell.classList.add('selected');
+              selectedCell.focus(); //have cell focus tracked
             })
 
             sudokuBoard.appendChild(cell);
@@ -109,9 +108,6 @@ document.addEventListener('keydown', (event) => {
         selectedCell(row, col + 1);
       }
       break;
-  
-      
-
   }
 });
 
@@ -121,6 +117,7 @@ function selectCell(row, col) {
   }
   selectedCell = document.querySelector(`input[data-row='${row}'][data-col='${col}']`);
   selectedCell.classList.add('selected');
+  selectedCell.focus(); //cselected cell changed, so focus this one
 }
 
 // Function to check if the solution is correct
