@@ -49,7 +49,7 @@ function createBoard() {
                 cell.disabled = true; // Lock original numbers
             } else {
                 cell.value = '';
-                cell.readOnly = true; //Make editable but not typable
+                //cell.readOnly = true; //Make editable but not typable
             }
             
             cell.setAttribute('data-row', row);
@@ -117,7 +117,7 @@ function selectCell(row, col) {
   }
   selectedCell = document.querySelector(`input[data-row='${row}'][data-col='${col}']`);
   selectedCell.classList.add('selected');
-  selectedCell.focus(); //cselected cell changed, so focus this one
+  selectedCell.focus(); //selected cell changed, so focus this one
 }
 
 // Function to check if the solution is correct
