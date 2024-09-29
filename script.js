@@ -73,7 +73,7 @@ function createBoard() {
 // for handling number button clicks
 document.querySelectorAll('.number-button').forEach(button => {
   button.addEventListener('click', () => {
-    if (selectedCell) {
+    if (selectedCell && !selectedCell.disabled) {
       selectedCell.value = button.getAttribute('data-value');
     }
   });
