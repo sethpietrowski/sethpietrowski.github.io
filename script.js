@@ -49,7 +49,6 @@ function createBoard() {
                 cell.disabled = true; // Lock original numbers
             } else {
                 cell.value = '';
-                //cell.readOnly = true; //Make editable but not typable
             }
             
             cell.setAttribute('data-row', row);
@@ -90,22 +89,22 @@ document.addEventListener('keydown', (event) => {
   switch (event.key) {
     case 'ArrowUp':
       if (row > 0) {
-        selectedCell(row - 1, col);
+        selectCell(row - 1, col);
       }
       break;
     case 'ArrowDown':
       if (row < 8) {
-        selectedCell(row + 1, col);
+        selectCell(row + 1, col);
       }
       break;
     case 'ArrowLeft':
       if (col > 0) {
-        selectedCell(row, col - 1);
+        selectCell(row, col - 1);
       }
       break;
     case 'ArrowRight':
       if (col < 8) {
-        selectedCell(row, col + 1);
+        selectCell(row, col + 1);
       }
       break;
   }
