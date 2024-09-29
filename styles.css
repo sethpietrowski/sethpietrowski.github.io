@@ -36,8 +36,8 @@ body {
 .cell:nth-child(3n+1) {
     border-left: 2px solid black;
 }
-
-.cell:nth-of-type(n+19):nth-of-type(-n + 27), .cell::nth-of-type(n+46):nth-of-type(-n + 54) {
+/* for borders after the 3rd and 6th rows */
+.cell:nth-of-type(n+19):nth-of-type(-n + 27), .cell:nth-of-type(n+46):nth-of-type(-n + 54) {
     border-bottom: 2px solid black; /* thick bottom border after every 3rd row */
 }
 

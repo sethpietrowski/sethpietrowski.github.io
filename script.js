@@ -3,7 +3,7 @@ const sudokuBoard = document.getElementById("sudoku-board");
 const newGameButton = document.getElementById("new-game");
 const checkSolutionButton = document.getElementById("check-solution");
 
-board = [
+let board = [
     // This is an example puzzle; you can replace it with a puzzle generator.
     [5, 3, 0, 0, 7, 0, 0, 0, 0],
     [6, 0, 0, 1, 9, 5, 0, 0, 0],
@@ -53,20 +53,6 @@ function createBoard() {
             
             cell.setAttribute('data-row', row);
             cell.setAttribute('data-col', col);
-      
-            // Add bold borders for the 3x3 grid structure
-            if (row % 3 === 0) {
-              cell.style.borderTop = '2px solid black';
-            }
-            if (col % 3 === 0) {
-              cell.style.borderLeft = '2px solid black';
-            }
-            if (row === 8) {
-              cell.style.borderBottom = '2px solid black';
-            }
-            if (col === 8) {
-              cell.style.borderRight = '2px solid black';
-            }
 
             sudokuBoard.appendChild(cell);
         }
@@ -100,8 +86,6 @@ function checkSolution() {
 }
 
 // Add event listeners for buttons
-//const newGameButton = document.getElementById("newGameButton");
-//const checkSolutionButton = document.getElementById("checkSolutionButton");
 
 newGameButton.addEventListener("click", createBoard);
 checkSolutionButton.addEventListener("click", checkSolution);
