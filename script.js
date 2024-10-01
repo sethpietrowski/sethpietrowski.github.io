@@ -43,6 +43,8 @@ function createBoard() {
             cell.min = 1;
             cell.max = 9;
             cell.className = "cell";
+            cell.setAttribute("step", "1"); //disable step functionality
+            cell.setAttribute("onkeydown", "return event.key !== 'ArrowUp' && event.key !== 'ArrowDown';"); //disable arrow key increment and decrement
 
             if (board[row][col] !== 0) {
                 cell.value = board[row][col];
