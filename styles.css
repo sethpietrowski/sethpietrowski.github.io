@@ -1,10 +1,10 @@
 body {
     font-family: Tahoma, sans-serif;
-    display: flex;
     flex-direction: column;
-    align-items: center;
-    height: 100vh;
+    /* align-items: center; */
     margin: 0;
+    padding: 0;
+    overflow-y: auto;
 }
 
 h1 {
@@ -15,12 +15,11 @@ h1 {
     background-position-x: 100%; 
     background-position-y: 100%; 
     background-repeat: no-repeat;
-    color: white; /* Ensure text remains visible */
+    color: white;
     text-align: center;
-    padding: 20px; /* Adjust padding to control spacing around the text */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Optional: adds a shadow for better readability */
+    padding: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); 
     background-size: 100% 90%;
-    /*height: 80px; */
     
 }
 
@@ -31,6 +30,7 @@ h1 {
     overflow: hidden;
     display: flex;
     justify-content: center;
+    position: relative;
 }
 
 .navbar a {
@@ -53,6 +53,12 @@ h1 {
     display: flex;
     flex-direction: column; /* to stack items vertically */
     align-items: center;
+}
+
+iframe {
+    width: 65%;
+    height: 90vh;
+    border: none;
 }
 
 #game-area {
