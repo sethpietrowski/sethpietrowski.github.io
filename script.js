@@ -48,6 +48,7 @@ function createBoard() {
 
             if (board[row][col] !== 0) {
                 cell.value = board[row][col];
+                cell.classList.add('start-nums');
                 cell.disabled = true; // Lock original numbers
             } else {
                 cell.value = '';
@@ -55,6 +56,13 @@ function createBoard() {
             
             cell.setAttribute('data-row', row);
             cell.setAttribute('data-col', col);
+
+            if (row ===2 || row === 5) {
+              cell.classList.add("horizontal-line");
+            }
+            if (col ===2 || col === 5) {
+              cell.classList.add("vertical-line");
+            }
 
             //Hande selecting cells
             cell.addEventListener('click', () => {

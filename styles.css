@@ -61,6 +61,13 @@ iframe {
     border: none;
 }
 
+footer{
+    display: table;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #game-area {
     display: flex;
     justify-content: center;
@@ -82,8 +89,18 @@ iframe {
     text-align: center;
     font-size: 20px;
     line-height: 40px;
+    border: 1px solid black;
     box-sizing: border-box;
-    border: 2px solid #000;
+    /* border: 2px solid #000; */
+}
+
+.cell:last-child {
+    border-right: none; /* Remove right border for the last cell in each row */
+}
+
+.cell:nth-last-child(3),
+.cell:nth-last-child(6) {
+    border-bottom: none; /* Remove bottom border for the last cells in 3rd and 6th row */
 }
 
 #number-buttons {
@@ -103,4 +120,16 @@ button {
     margin-top: 20px;
     padding: 10px;
     cursor: pointer;
+}
+
+.start-nums {
+    background-color: whitesmoke;
+}
+
+.horizontal-line {
+    border-bottom: 3px solid black;
+}
+
+.vertical-line {
+    border-right: 3px solid black;
 }
