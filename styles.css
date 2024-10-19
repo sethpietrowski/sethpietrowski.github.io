@@ -11,7 +11,19 @@ h1 {
     font-family: Tahoma, sans-serif;
     font-weight: bold;
     font-style: italic;
+    background: url('brushgrey.jfif') no-repeat center;
+    background-position-x: 100%; 
+    background-position-y: 100%; 
+    background-repeat: no-repeat;
+    color: white; /* Ensure text remains visible */
+    text-align: center;
+    padding: 20px; /* Adjust padding to control spacing around the text */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Optional: adds a shadow for better readability */
+    background-size: 100% 90%;
+    /*height: 80px; */
+    
 }
+
 
 .navbar {
     width: 100%;
