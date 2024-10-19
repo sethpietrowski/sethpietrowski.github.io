@@ -23,11 +23,21 @@
         </p>
 
         <h1>Check out my CV!</h1>
-        <iframe src="SethPietrowskiCurriculumVitaeV9.pdf"></iframe>  
+        <iframe  id="pdf-iframe" src="SethPietrowskiCurriculumVitaeV9.pdf"></iframe>  
     </div>
 
     <footer>
         Thank you for your time<span style="font-size: 85px;">.</span>
     </footer>
+
+    <script>
+        function resizeIframe() {
+            const iframe = document.getElementById('pdf-iframe');
+            iframe.style.height = window.innerHeight * 0.9 + 'px'; // Set height to 90% of viewport height
+        }
+
+        window.addEventListener('resize', resizeIframe);
+        window.addEventListener('load', resizeIframe); // Initial call to set size on load
+    </script>
 </body>
 </html>
