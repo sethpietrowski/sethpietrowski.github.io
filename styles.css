@@ -31,14 +31,17 @@ h1 {
     display: flex;
     justify-content: center;
     position: relative;
+    top: 0;
+    left: 0;
+    height: 60px;
+    z-index: 10;
 }
 
 .navbar a {
-    float: left;
     display: block;
     color: white;
     text-align: center;
-    padding: 14px 16px;
+    padding: 18px 20px;
     text-decoration: none;
 }
 
@@ -68,13 +71,6 @@ footer{
     margin-right: auto;
 }
 
-#game-area {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px; /* space between banner and game */
-}
-
 #sudoku-board {
     display: grid;
     grid-template-columns: repeat(9, 40px);
@@ -91,7 +87,6 @@ footer{
     line-height: 40px;
     border: 1px solid black;
     box-sizing: border-box;
-    /* border: 2px solid #000; */
 }
 
 .cell:last-child {
@@ -123,7 +118,7 @@ button {
 }
 
 .start-nums {
-    background-color: rgb(183, 183, 183);
+    background-color: rgb(222, 222, 222);
 }
 
 .horizontal-line {
@@ -132,4 +127,35 @@ button {
 
 .vertical-line {
     border-right: 3px solid black;
+}
+
+#game-area {
+    width: 100%;
+    height: calc(100vh - 50px); /* do not impede navbar */
+    margin-top: 50px;
+    overflow: hidden;
+    background: black;
+}
+
+.indicator { /* pertains to active/inactive viewport of 3d model */
+    position: absolute;
+    border: 2px solid #ffffff;
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: white;
+    background-color: rgba (0,0,0,0.7);
+    text-align: center;
+}
+
+.activate { /* pertains to active/inactive viewport of 3d model */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: block;
+}
+
+.exit { /* pertains to active/inactive viewport of 3d model */
+    top: 10px;
+    left: 10px;
+    display: none;
 }
