@@ -18,10 +18,13 @@ light.position.set(10,10,10);
 scene.add(light);
 
 //mouse movement and miscellaneous controls
+let targetX = 0, targetY = 0;
+let rotationX = 0, rotationY = 0;
 let isActive = false;      //for if viewport is/is not activated
 const movementSpeed = 0.1; //for wasd XY-plane movement
 const rotationSpeed = 0.002;  //for mouse movement
 let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
+let isRotating = false; // track lmb held down or not for rotation
 
 // elements for visibility of entering and exiting activation of viewport
 const activateIndicator = document.createElement('div');
@@ -33,7 +36,7 @@ exitIndicator.innerText = "Press Esc to Exit Viewport";
 document.getElementById("game-area").appendChild(activateIndicator);
 document.getElementById("game-area").appendChild(exitIndicator);
 
-//Toggle active vp on click and deactive on Esc - implement
+// Toggle active vp on click and deactive on Esc - implement
 document.getElementById("game-area").addEventListener("click", () => {
   if (!isActive) {
     isActive = true;
@@ -53,13 +56,15 @@ document.addEventListener("keydown", (event) => {
 
 // listen for wasd press which is used for movement
 window.addEventListener("keydown", (event) => {
-  switch (event.key) {
-    case 'w': moveForward = true; break;
-    case 's': moveBackward = true; break;
-    case 'a': moveLeft = true; break;
-    case 'd': moveRight = true; break;
-    case ' ': moveUp = true; break;
-    case 'Control': moveDown = true; break;
+  if (isActive) {
+    switch (event.key) {
+      case 'w': moveForward = true; break;
+      case 's': moveBackward = true; break;
+      case 'a': moveLeft = true; break;
+      case 'd': moveRight = true; break;
+      case ' ': moveUp = true; break;
+      case 'Control': moveDown = true; break;
+    }
   }
 });
 
@@ -74,45 +79,57 @@ window.addEventListener("keyup", (event) => {
   }
 });
 
-// listen for mouse movement used to rotate camera
-let lastMouseX = window.innerWidth / 2;
-let lastMouseY = window.innerHeight / 2;
+window.addEventListener("mousedown", (event) => {
+  if (isActive && event.button === 0) { //left button
+    isRotating = true;
+  }
+});
+
+window.addEventListener("mouseup", (event) => {
+  if (event.button === 0) {
+    isRotating = false;
+  }
+});
 
 // listen for mouse movement which is used for rotation
 window.addEventListener("mousemove", (event) => {
-  if (isActive) {
-    const deltaX = event.clientX - lastMouseX;
-    const deltaY = event.clientY - lastMouseY;
-
-    //update camera rotation  based on mouse movement
-    camera.rotation.x -= deltaY * rotationSpeed; //rotating up/down
-    camera.rotation.y -= deltaX * rotationSpeed; // rotating left/right
+  if (isActive && isRotating) {  
+    const deltaX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+    const deltaY = event.movementY || event.mozMovementY || event.webkitMovement || 0;
+    rotationX += deltaX * rotationSpeed; 
+    rotationY += deltaY * rotationSpeed;
   }
+});
 
-  lastMouseX = event.clientX; //update last mouse position
-  lastMouseY = event.clientY; //update last mouse position
+window.addEventListener("keydown", (event) => {
+  if (isActive) {
+    switch (event.key) {
+      case 'ArrowUp': cube.position.y += 1; break;
+      case 'ArrowDown': cube.position.y -= 1; break;
+      case 'ArrowLeft': cube.position.x -= 1; break;
+      case 'ArrowRight': cube.position.x += 1; break;
+    }
+  }
 });
 
 //Animate function for rendering, camera, and movement
 function animate() {
   requestAnimationFrame(animate);
 
-  if(isActive) {
-    const cameraDirection = new THREE.Vector3();
-    camera.getWorldDirection(cameraDirection);
-    cameraDirection.y = 0; // ignore vertical direction
-    cameraDirection.normalize();
+  //move cube based on wasd keys
+  if (isActive) {
+    cube.rotation.y += rotationX;
+    cube.rotation.x += rotationY;
+    rotationX *= 0.9 // damping for smooth rotation
+    rotationY *= 0.9
 
-    const right = new THREE.Vector3();
-    right.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize(); //get right direction vector (normal to camera view direction)
-
-    //move cube based on wasd keys
-    if (moveForward) camera.position.addScaledVector(cameraDirection, movementSpeed);
-    if (moveBackward) camera.position.addScaledVector(cameraDirection, -movementSpeed);
-    if (moveLeft) camera.position.addScaledVector(right, -movementSpeed);
-    if (moveRight) camera.position.addScaledVector(right, movementSpeed);
-    if (moveUp) camera.position.y += movementSpeed;
-    if (moveDown) camera.position.y -= movementSpeed;
+    // movement
+    if (moveForward) cube.position.z -= movementSpeed;
+    if (moveBackward) cube.position.z += movementSpeed;
+    if (moveLeft) cube.position.x -= movementSpeed;
+    if (moveRight) cube.position.x += movementSpeed;
+    if (moveUp) cube.position.y += movementSpeed;
+    if (moveDown) cube.position.y -= movementSpeed;
   }
   
   renderer.render(scene, camera);
