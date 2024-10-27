@@ -130,16 +130,24 @@ window.addEventListener("mousemove", (event) => {
   }
 });
 
-function adjustRotation() {
-  //cretae euler angle rotation increment
-  const euler = new THREE.Euler(rotationX, rotationY, 0, 'YXZ');
+function adjustRotation(deltaTime) {
+  if (isRotating) {
+    // Create quaternions for the rotations
+    const qx = new THREE.Quaternion();
+    const qy = new THREE.Quaternion();
 
-  //apply Euler rotation to cube's quaternion
-  cube.quaternion.setFromEuler(euler);
+    // Rotate around the X, Y axis (up-down rotation)
+    qy.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
+    qx.setFromAxisAngle(new THREE.Vector3(1, 0, 0), rotationX);
 
-  //damping of rotation
-  rotationX *= 0.9;
-  rotationY *= 0.9;
+    // Combine the new rotation with the current quaternion
+    cube.quaternion.multiplyQuaternions(qy, cube.quaternion);
+    cube.quaternion.multiplyQuaternions(qx, cube.quaternion);
+
+    // Damping of rotation so it aint' spinn'n
+    rotationX *= 0.9;
+    rotationY *= 0.9;
+  }
 }
 
 window.addEventListener("keydown", (event) => {
@@ -153,13 +161,20 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
+let lastTime = performance.now(); // track the last frame time
+
 //Animate function for rendering, camera, and movement
 function animate() {
   requestAnimationFrame(animate);
 
+  //get time elapsed since last frame
+  const now = performance.now();
+  const deltaTime = (now - lastTime) /1000; // conv. to seconds
+  lastTime = now;
+
   //move cube based on wasd keys
   if (isActive) {
-    adjustRotation();
+    adjustRotation(deltaTime);
 
     // movement
     if (moveForward) cube.position.z += movementSpeed;
