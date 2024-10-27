@@ -124,12 +124,12 @@ function animate() {
     rotationY *= 0.9
 
     // movement
-    if (moveForward) cube.position.z -= movementSpeed;
-    if (moveBackward) cube.position.z += movementSpeed;
-    if (moveLeft) cube.position.x -= movementSpeed;
-    if (moveRight) cube.position.x += movementSpeed;
-    if (moveUp) cube.position.y += movementSpeed;
-    if (moveDown) cube.position.y -= movementSpeed;
+    if (moveForward) cube.position.z += movementSpeed;
+    if (moveBackward) cube.position.z -= movementSpeed;
+    if (moveLeft) cube.position.x += movementSpeed;
+    if (moveRight) cube.position.x -= movementSpeed;
+    if (moveUp) cube.position.y -= movementSpeed;
+    if (moveDown) cube.position.y += movementSpeed;
   }
   
   renderer.render(scene, camera);
