@@ -33,8 +33,13 @@ scene.add(cube);
 camera.position.z = 5; // step the camera back to view the object which is placed at the origin
 
 //lighting (for visibility, ambient light)
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(ambientLight);
+
+// another light to make it brighter
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+directionalLight.position.set(-1, 1, 1).normalize();
+scene.add(directionalLight);
 
 //mouse movement and miscellaneous controls
 let targetX = 0, targetY = 0;
@@ -120,16 +125,21 @@ window.addEventListener("mousemove", (event) => {
   if (isActive && isRotating) {  
     const deltaX = event.movementX || 0;
     const deltaY = event.movementY || 0;
-    rotationX += deltaX * rotationSpeed; 
-    rotationY += deltaY * rotationSpeed;
+    rotationX += deltaY * rotationSpeed; 
+    rotationY += deltaX * rotationSpeed;
   }
 });
 
-function adjustRotationRelativeToCamera() {
-  const relativeRotationX = rotationX * Math.cos(camera.rotation.y) - rotationY * Math.sin(camera.rotation.y);
-  const relativeRotationY = rotationX * Math.sin(camera.rotation.y) - rotationY * Math.cos(camera.rotation.y);
-  cube.rotation.x += relativeRotationY;
-  cube.rotation.y += relativeRotationX;
+function adjustRotation() {
+  //cretae euler angle rotation increment
+  const euler = new THREE.Euler(rotationX, rotationY, 0, 'YXZ');
+
+  //apply Euler rotation to cube's quaternion
+  cube.quaternion.setFromEuler(euler);
+
+  //damping of rotation
+  rotationX *= 0.9;
+  rotationY *= 0.9;
 }
 
 window.addEventListener("keydown", (event) => {
@@ -149,9 +159,7 @@ function animate() {
 
   //move cube based on wasd keys
   if (isActive) {
-    adjustRotationRelativeToCamera();
-    rotationX *= 0.9 // damping for smooth rotation
-    rotationY *= 0.9
+    adjustRotation();
 
     // movement
     if (moveForward) cube.position.z += movementSpeed;
