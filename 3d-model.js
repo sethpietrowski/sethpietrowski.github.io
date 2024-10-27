@@ -5,17 +5,36 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.getElementById("game-area").appendChild(renderer.domElement);
 
 // create cube, add to scene
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+const geometry = new THREE.TorusKnotGeometry();
+
+const vertexShader = `
+  varying vec3 vNormal;
+  void main() {
+  vNormal = normalize(normalMatrix * normal);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }`;
+
+const fragmentShader = `
+  varying vec3 vNormal;
+  void main() {
+  vec3 lightDirection = normalize(vec3(-1.0,1.0,0.0)); //light location is to left and above camera
+  float intensity = pow(max(dot(vNormal, lightDirection), 0.0), 2.5); // make edges glow
+  gl_FragColor = vec4(0.0, intensity, 0.0, 1.0); // greenish glow on edges
+  }`;
+
+const material = new THREE.ShaderMaterial({ 
+  vertexShader, 
+  fragmentShader, 
+  wireframe: false, 
+});
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
-camera.position.z = 5;
+camera.position.z = 5; // step the camera back to view the object which is placed at the origin
 
-//lighting
-const light = new THREE.PointLight(0xffffff, 1, 100);
-light.position.set(10,10,10);
-scene.add(light);
+//lighting (for visibility, ambient light)
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+scene.add(ambientLight);
 
 //mouse movement and miscellaneous controls
 let targetX = 0, targetY = 0;
@@ -23,7 +42,12 @@ let rotationX = 0, rotationY = 0;
 let isActive = false;      //for if viewport is/is not activated
 const movementSpeed = 0.1; //for wasd XY-plane movement
 const rotationSpeed = 0.002;  //for mouse movement
-let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, moveUp = false, moveDown = false;
+let moveForward = false, 
+  moveBackward = false, 
+  moveLeft = false, 
+  moveRight = false, 
+  moveUp = false, 
+  moveDown = false;
 let isRotating = false; // track lmb held down or not for rotation
 
 // elements for visibility of entering and exiting activation of viewport
@@ -94,12 +118,19 @@ window.addEventListener("mouseup", (event) => {
 // listen for mouse movement which is used for rotation
 window.addEventListener("mousemove", (event) => {
   if (isActive && isRotating) {  
-    const deltaX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-    const deltaY = event.movementY || event.mozMovementY || event.webkitMovement || 0;
+    const deltaX = event.movementX || 0;
+    const deltaY = event.movementY || 0;
     rotationX += deltaX * rotationSpeed; 
     rotationY += deltaY * rotationSpeed;
   }
 });
+
+function adjustRotationRelativeToCamera() {
+  const relativeRotationX = rotationX * Math.cos(camera.rotation.y) - rotationY * Math.sin(camera.rotation.y);
+  const relativeRotationY = rotationX * Math.sin(camera.rotation.y) - rotationY * Math.cos(camera.rotation.y);
+  cube.rotation.x += relativeRotationY;
+  cube.rotation.y += relativeRotationX;
+}
 
 window.addEventListener("keydown", (event) => {
   if (isActive) {
@@ -118,8 +149,7 @@ function animate() {
 
   //move cube based on wasd keys
   if (isActive) {
-    cube.rotation.y += rotationX;
-    cube.rotation.x += rotationY;
+    adjustRotationRelativeToCamera();
     rotationX *= 0.9 // damping for smooth rotation
     rotationY *= 0.9
 
