@@ -10,7 +10,12 @@ const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true 
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
+let yaw = 0;
+let pitch = 0;
 camera.position.z = 5;
+camera.fov = 60;
+
+camera.updateProjectionMatrix();
 
 //lighting
 const light = new THREE.PointLight(0xffffff, 1, 100);
@@ -39,6 +44,15 @@ document.getElementById("game-area").addEventListener("click", () => {
     isActive = true;
     activateIndicator.style.display = 'none';
     exitIndicator.style.display = 'block';
+    document.getElementById("game-area").requestPointerLock();
+  }
+});
+
+document.addEventListener("pointerlockchange", () => {
+  if(document.pointerLockElement === null) {
+    isActive = false;
+    activateIndicator.style.display = 'block';
+    exitIndicator.style.display = 'none';
   }
 });
 
@@ -81,16 +95,24 @@ let lastMouseY = window.innerHeight / 2;
 // listen for mouse movement which is used for rotation
 window.addEventListener("mousemove", (event) => {
   if (isActive) {
-    const deltaX = event.clientX - lastMouseX;
-    const deltaY = event.clientY - lastMouseY;
+    const deltaX = event.movementX * rotationSpeed;
+    const deltaY = event.movementY * rotationSpeed;
 
-    //update camera rotation  based on mouse movement
-    camera.rotation.x -= deltaY * rotationSpeed; //rotating up/down
-    camera.rotation.y -= deltaX * rotationSpeed; // rotating left/right
+    yaw -= deltaX;
+
+    // pitch limit avoids vertical tilt that occurs from mouse drift
+    const pitchLimit = Math.PI / 2 - 0.1; // little less than 90deg
+    pitch = Math.max(-pitchLimit, Math.min(pitchLimit, pitch - deltaY));
+    
+    //apply camera rotation
+    const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+    const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+
+    //combine yaw an pitch
+    camera.quaternion.copy(yawQuat).multiply(pitchQuat);
+    // camera.rotation.x -= deltaY * rotationSpeed; //rotating up/down
+    // camera.rotation.y -= deltaX * rotationSpeed; // rotating left/right
   }
-
-  lastMouseX = event.clientX; //update last mouse position
-  lastMouseY = event.clientY; //update last mouse position
 });
 
 //Animate function for rendering, camera, and movement
