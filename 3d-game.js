@@ -51,6 +51,8 @@ function updateFullscreenState() {
 
     //disable scroll in fullscreen
     window.addEventListener('wheel', disableScroll, { passive: false});
+
+    document.body.classList.add('pointer-locked');
   } else {
     activateIndicator.style.display = 'block'; // show activation message
     // exitIndicator.style.display = 'block'; // show exit message when in fullscreen
@@ -62,6 +64,9 @@ function updateFullscreenState() {
 
     //reenable scroll in exiting fullscreen
     window.removeEventListener('wheel', disableScroll);
+
+    //remove the class to show the pointer
+    document.body.classList.remove('pointer-locked');
   }
 }
 
@@ -115,6 +120,26 @@ document.addEventListener("keydown", (event) => {
     isActive = false;
     activateIndicator.style.display = 'block';
     exitIndicator.style.display = 'none';
+
+    //release pointer lock if it is active
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+  }
+});
+
+document.addEventListener("pointerlockchange", () => {
+  if (document.pointerLockElement === null) {
+    isActive = false;
+    activateIndicator.style.display = 'block';
+    exitIndicator.style.display = 'none';
+    
+    // Remove cursor hiding when exiting pointer lock
+    document.body.classList.remove('pointer-locked');
+  } else {
+    // Set active when pointer is locked
+    isActive = true;
+    document.body.classList.add('pointer-locked');
   }
 });
 

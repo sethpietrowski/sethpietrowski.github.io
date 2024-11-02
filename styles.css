@@ -24,6 +24,9 @@ h1 {
     
 }
 
+.pointer-locked {
+    cursor: none;
+}
 
 .navbar {
     width: 100%;
