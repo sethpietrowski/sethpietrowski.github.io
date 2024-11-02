@@ -56,7 +56,9 @@ function updateFullscreenState() {
     // exitIndicator.style.display = 'block'; // show exit message when in fullscreen
     navbar.style.display = 'block'; //showing
 
-    navbar.offsetHeight; // trigger reflow
+    setTimeout(() => {
+      navbar.style.display = 'flex';
+    }, 50); //timing
 
     //reenable scroll in exiting fullscreen
     window.removeEventListener('wheel', disableScroll);
