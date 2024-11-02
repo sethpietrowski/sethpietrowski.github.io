@@ -1,3 +1,4 @@
+
 body {
     font-family: Tahoma, sans-serif;
     flex-direction: column;
@@ -30,7 +31,7 @@ h1 {
     overflow: hidden;
     display: flex;
     justify-content: center;
-    position: relative;
+    position: fixed;
     top: 0;
     left: 0;
     height: 60px;
@@ -52,7 +53,7 @@ h1 {
 
 .container {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 60px;
     display: flex;
     flex-direction: column; /* to stack items vertically */
     align-items: center;
@@ -131,10 +132,10 @@ button {
 
 #game-area {
     width: 100%;
-    height: calc(100vh - 50px); /* do not impede navbar */
-    margin-top: 50px;
+    height: 100%;
     overflow: hidden;
-    background: black;
+    position: absolute;
+
 }
 
 .indicator { /* pertains to active/inactive viewport of 3d model */
