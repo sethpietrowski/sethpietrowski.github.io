@@ -1,8 +1,11 @@
-document.addEventListener("DOMContentLoaded", () => {
-    fetch('banner.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('banner-placeholder').innerHTML = data;
-        })
-        .catch(error => console.error('Error loading banner: ', error));
+document.addEventListener("DOMContentLoaded", async () => {
+    const bannerPlaceholder = document.getElementById('banner-placeholder');
+    try {
+        const response = await fetch('banner.html');
+        if (!response.ok) throw new Error(`HTTP error. Status: ${response.status}`);
+        bannerPlaceholder.innerHTML = await response.text();
+
+    } catch (error) {
+        console.error('Error loading banner:', error);
+    }
 });

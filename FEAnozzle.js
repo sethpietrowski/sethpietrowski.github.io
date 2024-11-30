@@ -55,19 +55,22 @@ function createGrid(ctx, rows, cols) {
     const cellWidth = canvas.width / cols;
     const cellHeight = canvas.height / rows;
 
+    ctx.save();
+    ctx.translate(0, canvas.height / 2); //align with nozzle
     ctx.strokeStyle = '#ccc';
     for (let i=0; i<=rows; i++) {
         ctx.beginPath();
-        ctx.moveTo(0, i*cellHeight);
-        ctx.lineTo(canvas.width, i*cellHeight);
+        ctx.moveTo(0, i*cellHeight - canvas.height / 2); //align vertically
+        ctx.lineTo(canvas.width, i*cellHeight - canvas.height / 2);
         ctx.stroke();
     }
     for (let i=0; i<=cols; i++) {
         ctx.beginPath();
-        ctx.moveTo(i*cellWidth, 0);
-        ctx.lineTo(i*cellWidth, canvas.height);
+        ctx.moveTo(i*cellWidth, -canvas.height / 2);
+        ctx.lineTo(i*cellWidth, canvas.height / 2);
         ctx.stroke();
     }
+    ctx.restore();
 }
 createGrid(ctx, 20, 40) // (x, y, z) - y is #rows, z is #cols
 
@@ -82,7 +85,7 @@ const pressure = Array(rows).fill().map(() => Array(cols).fill(0));
 function updateFlow() {
     for (let i=1; i<rows-1; i++) {
         for (let j=1; j<cols-1; j++) {
-            velocityX[i][j] += 0.1; //placeholder logic
+            velocityX[i][j] = (cols - j) * 0.1; //increasing velocity with x
             pressure[i][j] = Math.sqrt(velocityX[i][j]**2 + velocityY[i][j]**2);
         }
     }
@@ -106,10 +109,10 @@ function visualizeFlow(ctx) {
 //animate the visualization
 function animate() {
     ctx.clearRect(0,0, canvas.width, canvas.height);
+    updateFlow();
     visualizeFlow(ctx);
     createNozzleGeometry(ctx);
     createGrid(ctx, rows, cols);
-    updateFlow();
     requestAnimationFrame(animate);
 }
 animate();
