@@ -59,15 +59,17 @@ function createGrid(ctx, rows, cols) {
     ctx.translate(0, canvas.height / 2); //align with nozzle
     ctx.strokeStyle = '#ccc';
     for (let i=0; i<=rows; i++) {
+        const y = i * cellHeight;
         ctx.beginPath();
-        ctx.moveTo(0, i*cellHeight - canvas.height / 2); //align vertically
-        ctx.lineTo(canvas.width, i*cellHeight - canvas.height / 2);
+        ctx.moveTo(0, y - canvas.height / 2); //align vertically
+        ctx.lineTo(canvas.width, y - canvas.height / 2);
         ctx.stroke();
     }
     for (let i=0; i<=cols; i++) {
+        const x = i * cellWidth;
         ctx.beginPath();
-        ctx.moveTo(i*cellWidth, -canvas.height / 2);
-        ctx.lineTo(i*cellWidth, canvas.height / 2);
+        ctx.moveTo(x, -canvas.height / 2);
+        ctx.lineTo(x, canvas.height / 2);
         ctx.stroke();
     }
     ctx.restore();
@@ -85,10 +87,18 @@ const pressure = Array(rows).fill().map(() => Array(cols).fill(0));
 function updateFlow() {
     for (let i=1; i<rows-1; i++) {
         for (let j=1; j<cols-1; j++) {
-            velocityX[i][j] = (cols - j) * 0.1; //increasing velocity with x
+            velocityX[i][j] = (velocityX[i - 1][j] + velocityX[i + 1][j] + velocityX[i][j - 1] + velocityX[i][j + 1]) / 4;
+            velocityY[i][j] = (velocityY[i - 1][j] + velocityY[i + 1][j] + velocityY[i][j - 1] + velocityY[i][j + 1]) / 4;
+
             pressure[i][j] = Math.sqrt(velocityX[i][j]**2 + velocityY[i][j]**2);
         }
     }
+}
+
+function getColorFromPressure(pressureValue, minPressure, maxPressure) {
+    const normalized = (pressureValue - minPressure) / (maxPressure - minPressure);
+    const huew = (1-normalized) * 240;
+    return `hsl(${hue}, 100%, 50%)`;
 }
 
 //correlate numeric to color value
@@ -98,21 +108,20 @@ function visualizeFlow(ctx) {
 
     for (let i = 0; i<rows; i++) {
         for (let j = 0; j<cols; j++) {
-            const normalizedPressure = (pressure[i][j] - minPressure)/(maxPressure - minPressure);
-            const color = `rgba(${255 * normalizedPressure}, 0, ${255 * (1 - normalizedPressure)}, 1)`;
+            const color = getColorFromPressure(pressure[i][j], minPressure, maxPressure);
             ctx.fillStyle = color;
             ctx.fillRect(j * canvas.width / cols, i * canvas.height / rows, canvas.width / cols, canvas.height / rows);
         }
     }
 }
 
+
 //animate the visualization
 function animate() {
     ctx.clearRect(0,0, canvas.width, canvas.height);
-    updateFlow();
     visualizeFlow(ctx);
     createNozzleGeometry(ctx);
-    createGrid(ctx, rows, cols);
+    updateFlow();
     requestAnimationFrame(animate);
 }
 animate();
