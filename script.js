@@ -163,9 +163,35 @@ function checkSolution() {
 }
 
 // Add event listeners for buttons
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM fully loaded");
+  const newGameButton = document.getElementById("new-game");
+  const checkSolutionButton = document.getElementById("check-solution");
+  
+  console.log(newGameButton, checkSolutionButton);
 
-newGameButton.addEventListener("click", createBoard);
-checkSolutionButton.addEventListener("click", checkSolution);
+  if (newGameButton && checkSolutionButton) {
+    console.log("Both buttons found");
+
+    newGameButton.onclick = () => {
+      console.log("New Game Inline test Clicked");
+    };
+    newGameButton.addEventListener("click", () => {
+      console.log("New Game button was clicked");
+      createBoard();
+    });
+    checkSolutionButton.onclick = () => {
+      console.log("Check Solution Inline test Clicked");
+    };
+    checkSolutionButton.addEventListener("click", () => {
+      console.log("Check Solution button was clicked");
+      checkSolution();
+    });
+  } else {
+    console.error("Buttons not found");
+  }
+});
+
 
 // Initialize the board when the page loads
 window.onload = createBoard();
