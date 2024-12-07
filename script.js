@@ -140,14 +140,17 @@ function checkSolution() {
   for (let row = 0; row < 9; row++) {
     for (let col = 0; col < 9; col++) {
       const cell = document.querySelector(`input[data-row='${row}'][data-col='${col}']`);
-      const userValue = parseInt(cell.value) || 0; // Read user input, treat empty as 0
+      const userValue = parseInt(cell.value, 10) || 0; // Read user input, treat empty as 0
 
       // Check if the filled value matches the solution, but ignore empty cells
-      if (userValue !== 0 && userValue !== solution[row][col]) {
+      if (!userValue) {
+        cell.style.backgroundColor = '#ffcccc'; // Highlight empty cells
         isCorrect = false;
+      } else if (userValue !== 0 && userValue !== solution[row][col]) {
         cell.style.backgroundColor = '#ffcccc'; // Highlight incorrect cells
+        isCorrect = false;
       } else {
-        cell.style.backgroundColor = ''; // Clear highlighting for correct cells
+        cell.style.backgroundColor = 'ccffcc'; // Highlight correct cells
       }
     }
   }
