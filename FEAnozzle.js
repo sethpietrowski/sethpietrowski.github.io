@@ -97,7 +97,7 @@ function updateFlow() {
 
 function getColorFromPressure(pressureValue, minPressure, maxPressure) {
     const normalized = (pressureValue - minPressure) / (maxPressure - minPressure);
-    const huew = (1-normalized) * 240;
+    const hue = (1-normalized) * 240;
     return `hsl(${hue}, 100%, 50%)`;
 }
 
@@ -119,8 +119,8 @@ function visualizeFlow(ctx) {
 //animate the visualization
 function animate() {
     ctx.clearRect(0,0, canvas.width, canvas.height);
-    visualizeFlow(ctx);
     createNozzleGeometry(ctx);
+    visualizeFlow(ctx);
     updateFlow();
     requestAnimationFrame(animate);
 }
