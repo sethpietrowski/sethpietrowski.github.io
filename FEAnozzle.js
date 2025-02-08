@@ -83,6 +83,10 @@ const velocityX = Array(rows).fill().map(() => Array(cols).fill(0));
 const velocityY = Array(rows).fill().map(() => Array(cols).fill(0));
 const pressure = Array(rows).fill().map(() => Array(cols).fill(0));
 
+for (let i=0; i<rows; i++) {
+    velocityX[i][0] = 5; //constant inlet velocity for testing
+}
+
 //equations for velocity and pressure
 function updateFlow() {
     for (let i=1; i<rows-1; i++) {
@@ -96,7 +100,11 @@ function updateFlow() {
 }
 
 function getColorFromPressure(pressureValue, minPressure, maxPressure) {
-    const normalized = (pressureValue - minPressure) / (maxPressure - minPressure);
+    let normalized = 0;
+    if (maxPressure !== minPressure) {
+        normalized = (pressureValue - minPressure) / (maxPressure - minPressure);
+    }
+    
     const hue = (1-normalized) * 240;
     return `hsl(${hue}, 100%, 50%)`;
 }
@@ -119,8 +127,8 @@ function visualizeFlow(ctx) {
 //animate the visualization
 function animate() {
     ctx.clearRect(0,0, canvas.width, canvas.height);
-    createNozzleGeometry(ctx);
     visualizeFlow(ctx);
+    createNozzleGeometry(ctx);
     updateFlow();
     requestAnimationFrame(animate);
 }
