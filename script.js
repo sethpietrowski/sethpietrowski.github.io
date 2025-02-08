@@ -104,19 +104,19 @@ document.addEventListener('keydown', (event) => {
       }
       break;
     case 'ArrowDown':
-      event.preventDefault;
+      event.preventDefault();
       if (row < 8) {
         selectCell(row + 1, col);
       }
       break;
     case 'ArrowLeft':
-      event.preventDefault;
+      event.preventDefault();
       if (col > 0) {
         selectCell(row, col - 1);
       }
       break;
     case 'ArrowRight':
-      event.preventDefault;
+      event.preventDefault();
       if (col < 8) {
         selectCell(row, col + 1);
       }
@@ -150,11 +150,10 @@ function checkSolution() {
         cell.style.backgroundColor = '#ffcccc'; // Highlight incorrect cells
         isCorrect = false;
       } else {
-        cell.style.backgroundColor = 'ccffcc'; // Highlight correct cells
+        cell.style.backgroundColor = '#ccffcc'; // Highlight correct cells
       }
     }
   }
-
   if (isCorrect) {
     alert("Congratulations! You solved the puzzle correctly.");
   } else {
