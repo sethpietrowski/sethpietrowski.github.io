@@ -7,7 +7,7 @@ camera.updateProjectionMatrix();
 
 // create cube, add to scene
 const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+const material = new THREE.MeshStandardMaterial({ color: 0x00ff00, wireframe: true });
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
@@ -21,12 +21,12 @@ const light = new THREE.PointLight(0xffffff, 1, 100);
 light.position.set(10,10,10);
 scene.add(light);
 
-camera.position.set(0,0,5);
-camera.fov = 60;
+// camera.position.set(0,0,5);
+// camera.fov = 60;
 
 //pointer lock controls
 const controls = new THREE.PointerLockControls(camera, renderer.domElement);
-scene.add(controls.getObject());
+//scene.add(controls.getObject());
 //new end
 
 function createElement(tag, className, textContent, styles = {}) {
@@ -55,7 +55,7 @@ document.addEventListener("pointerlockchange", () => {
   }
 });
 
-dameArea.addEventListener("click", () => {
+gameArea.addEventListener("click", () => {
   controls.lock();
 });
 
@@ -299,5 +299,5 @@ animate();
 window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth  /window.innerHeight;
-  camera.updateProjectionMatrix();
+  //camera.updateProjectionMatrix();
 });
