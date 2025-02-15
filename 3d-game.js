@@ -188,12 +188,16 @@ window.addEventListener("mousemove", (event) => {
     const pitchLimit = Math.PI / 2 - 0.1; // little less than 90deg
     pitch = Math.max(-pitchLimit, Math.min(pitchLimit, pitch - deltaY));
     
+    //Using Euler angles 
+    camera.rotation.order = 'YXZ';
+    camera.rotation.y = yaw;
+    camera.rotation.x = pitch;
     //apply camera rotation
-    const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-    const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+    //const yawQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+    //const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
 
     //combine yaw and pitch
-    camera.quaternion.copy(yawQuat).multiply(pitchQuat);
+    //camera.quaternion.copy(yawQuat).multiply(pitchQuat);
   }
 });
 
