@@ -26,7 +26,7 @@ scene.add(light);
 
 //pointer lock controls
 const controls = new THREE.PointerLockControls(camera, renderer.domElement);
-//scene.add(controls.getObject());
+scene.add(controls.getObject());
 //new end
 
 function createElement(tag, className, textContent, styles = {}) {
