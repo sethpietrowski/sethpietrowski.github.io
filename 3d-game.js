@@ -102,15 +102,21 @@ gameArea.addEventListener("click", () => {
     } else {
     console.warn("Fullscreen API is not supported");  
     }
-    gameArea.requestPointerLock();
+    renderer.domElement.requestPointerLock();
   }
 });
 
 document.addEventListener("pointerlockchange", () => {
-  if(document.pointerLockElement === null) {
+  if(document.pointerLockElement === renderer.domElement) {
+    isActive = true;
+    activateIndicator.style.display = 'none';
+    document.body.classList.add('pointer-locked');
+    // exitIndicator.style.display = 'block';
+  } else {
     isActive = false;
     activateIndicator.style.display = 'block';
-    exitIndicator.style.display = 'none';
+    document.body.classList.remove('pointer-locked');
+    // exitIndicator.style.display = 'none'; 
   }
 });
 
