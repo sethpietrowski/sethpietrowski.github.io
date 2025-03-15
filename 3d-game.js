@@ -111,3 +111,13 @@ window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth  /window.innerHeight;
   camera.updateProjectionMatrix();
 });
+
+//overlay button fucntioning capability:
+document.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("instructions-overlay");
+  const acceptBtn = document.getElementById("accept-btn");
+  
+  acceptBtn.addEventListener("click", () => {
+    overlay.style.display = "none";
+  });
+});

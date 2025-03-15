@@ -10,10 +10,16 @@
     <div id="banner-placeholder"></div>
     
 
-    <div class="container">
-        <h1>3D Game Simulation</h1>
-        <p style="text-align:center">Click viewport to activate. Click esc to deactivate viewport. W,S move in into screen/away from screen. A/D move sideways. Space/Ctrl move up/down. Move mouse to rotate camera.</p>
+    <div id="instructions-overlay">
+        <div id="instructions-box">
+            <h2>Movement Controls</h2>
+            <p>
+                Click: activate viewport. Esc: deactivate viewport. W,S: forward/back. A/D: left/right. Space/Ctrl: up/down. Move mouse to rotate camera.
+            </p>
+            <button id=""accept-btn">Accept</button>
+        </div>
     </div>
+    
     <div id="game-area"></div>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
     <script src="https://threejs.org/build/three.js"></script>
