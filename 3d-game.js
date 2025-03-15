@@ -7,12 +7,10 @@ camera.updateProjectionMatrix();
 
 // create cube, add to scene
 const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshStandardMaterial({ color: 0x00ff00e });
+const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
-let yaw = 0;
-let pitch = 0;
 camera.position.z = 5;
 camera.lookAt(cube.position);
 camera.fov = 60;
@@ -25,9 +23,6 @@ scene.add(light);
 //new ambient lighting source
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
-
-// camera.position.set(0,0,5);
-// camera.fov = 60;
 
 //pointer lock controls
 const controls = new THREE.PointerLockControls(camera, renderer.domElement);
@@ -45,18 +40,13 @@ function createElement(tag, className, textContent, styles = {}) {
 //fullscreen and ui integration
 const gameArea = document.getElementById("game-area");
 const activateIndicator = createElement('div', 'indicator activate', "Click Here to Activate Viewport");
-// const exitIndicator = createElement('div', 'indicator exit', "Press Esc to Exit Viewport");
-
 gameArea.appendChild(activateIndicator);
-// gameArea.appendChild(exitIndicator);
 
 document.addEventListener("pointerlockchange", () => {
   if(document.pointerLockElement === renderer.domElement) {
     activateIndicator.style.display = 'none';
-    // exitIndicator.style.display = 'block';
   } else {
-    activateIndicator.style.display = 'block';
-    // exitIndicator.style.display = 'none'; 
+    activateIndicator.style.display = 'block'; 
   }
 });
 
@@ -103,12 +93,13 @@ function animate() {
 
     if (direction.length() > 0) {
       direction.applyQuaternion(camera.quaternion);
-      controls.position.add(direction);
+      controls.getObject().position.add(direction);
     }
   }
+  renderer.render(scene, camera);
 };
 
-renderer.render(scene, camera);
+
 
 
 animate();
