@@ -14,6 +14,7 @@ scene.add(cube);
 camera.position.z = 5;
 camera.lookAt(cube.position);
 camera.fov = 60;
+camera.updateProjectionMatrix();
 
 //new directional lighting source
 const light = new THREE.PointLight(0xffffff, 1, 100);
@@ -89,7 +90,7 @@ function animate() {
     if (keys.a) direction.x -= movementSpeed;
     if (keys.d) direction.x += movementSpeed;
     if (keys[" "]) direction.y += movementSpeed;
-    if (keys.Control) direction.y -= movementSpeed;
+    if (keys.control) direction.y -= movementSpeed;
 
     if (direction.length() > 0) {
       direction.applyQuaternion(camera.quaternion);
