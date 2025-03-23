@@ -1,8 +1,11 @@
+import * as THREE from 'https://threejs.org/build/three.module.js';
+import { PointerLockControls } from 'https://threejs.org/examples/jsm/controls/PointerLockControls.js';
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.getElementById("game-area").appendChild(renderer.domElement);
+document.body.appendChild(renderer.domElement);
 camera.updateProjectionMatrix();
 
 // create cube, add to scene
@@ -26,7 +29,7 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambientLight);
 
 //pointer lock controls
-const controls = new THREE.PointerLockControls(camera, renderer.domElement);
+const controls = new THREE.PointerLockControls(camera, document.body);
 scene.add(controls.getObject());
 //new end
 
@@ -51,8 +54,16 @@ document.addEventListener("pointerlockchange", () => {
   }
 });
 
-gameArea.addEventListener("click", () => {
+document.addEventListener("click", () => {
   controls.lock();
+});
+
+controls.addEventListener("lock", () => {
+  console.log('Pointer locked');
+})
+
+controls.addEventListener("unlock", () => {
+  console.log('Pointer unlocked');
 });
 
 const movementSpeed = 0.1;
