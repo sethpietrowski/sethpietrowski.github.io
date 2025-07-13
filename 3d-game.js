@@ -41,13 +41,8 @@ function createElement(tag, className, textContent, styles = {}) {
   return element;
 }
 
-//fullscreen and ui integration
-const gameArea = document.getElementById("game-area");
-const activateIndicator = createElement('div', 'indicator activate', "Click Here to Activate Viewport");
-gameArea.appendChild(activateIndicator);
-
 document.addEventListener("pointerlockchange", () => {
-  if(document.pointerLockElement === renderer.domElement) {
+  if(document.pointerLockElement === document.body) {
     activateIndicator.style.display = 'none';
   } else {
     activateIndicator.style.display = 'block'; 
@@ -77,15 +72,17 @@ const keys = {
 };
 
 window.addEventListener("keydown", (event) => {
-  if (event.key in keys) {
-    keys[event.key] = true;
-  }
+  const key = event.key.toLowerCase();
+  if (key === " ") keys.space = true;
+  else if (key === "control") keys.control = true;
+  else if (key in keys) keys[key] = true;
 });
 
 window.addEventListener("keyup", (event) => {
-  if (event.key in keys) {
-    keys[event.key] = false;
-  }
+  const key = event.key.toLowerCase();
+  if (key === " ") keys.space = false;
+  else if (key === "control") keys.control = false;
+  else if (key in keys) keys[key] = false;
 });
 
 //Animate function for rendering, camera, and movement
@@ -100,7 +97,7 @@ function animate() {
     if (keys.s) direction.z += movementSpeed;
     if (keys.a) direction.x -= movementSpeed;
     if (keys.d) direction.x += movementSpeed;
-    if (keys[" "]) direction.y += movementSpeed;
+    if (keys.space) direction.y += movementSpeed;
     if (keys.control) direction.y -= movementSpeed;
 
     if (direction.length() > 0) {
@@ -127,8 +124,29 @@ window.addEventListener("resize", () => {
 document.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("instructions-overlay");
   const acceptBtn = document.getElementById("accept-btn");
-  
+
   acceptBtn.addEventListener("click", () => {
     overlay.style.display = "none";
+  });
+
+  const gameArea = document.getElementById("game-area");
+  const activateIndicator = createElement('div', 'indicator activate', "Click Here to Activate Viewport");
+  gameArea.appendChild(activateIndicator);
+
+  //pointer lock not available on Android
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    activateIndicator.innerText = "3D Game is not supported on mobile.";
+  }
+
+  document.addEventListener("pointerlockchange", () => {
+    if (document.pointerLockElement === document.body) {
+      activateIndicator.style.display = 'none';
+    } else {
+      activateIndicator.style.display = 'block';
+    }
+  });
+
+  document.addEventListener("click", () => {
+    controls.lock();
   });
 });

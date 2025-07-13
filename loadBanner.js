@@ -1,11 +1,12 @@
-document.addEventListener("DOMContentLoaded", async () => {
-    const bannerPlaceholder = document.getElementById('banner-placeholder');
-    try {
-        const response = await fetch('banner.html');
-        if (!response.ok) throw new Error(`HTTP error. Status: ${response.status}`);
-        bannerPlaceholder.innerHTML = await response.text();
+fetch('banner.html')
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('banner-placeholder').innerHTML = html;
+    })
 
-    } catch (error) {
-        console.error('Error loading banner:', error);
-    }
+const current = window.location.pathname.split("/").pop();
+document.querySelectorAll(".navbar a").forEach(link => {
+  if (link.getAttribute("href") === current) {
+    link.classList.add("active");
+  }
 });
