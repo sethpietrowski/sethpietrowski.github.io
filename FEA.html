@@ -7,12 +7,57 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="banner-placeholder"></div>
+    //<div id="banner-placeholder"></div>
 
-    <main class="container">
+    <div class="container">
         <h1>FEA Nozzle Simulator</h1>
-        <canvas id="fea-canvas" width="800" height="400"></canvas>
-    </main>
+
+        <div class="controls">
+            <h3>Visualization Mode:</h3>
+            <div class="radio-group">
+                <div class="radio-item">
+                    <input type="radio" id="pressure" name="vizMode" value="pressure">
+                    <label for="pressure">Pressure</label>
+                </div>
+                <div class="radio-item">
+                    <input type="radio" id="velocity" name="vizMode" value="velocity">
+                    <label for="velocity">Velocity</label>
+                </div>
+                <div class="radio-item">
+                    <input type="radio" id="temperature" name="vizMode" value="temperature">
+                    <label for="temperature">Temperature</label>
+                </div>
+                <div class="radio-item">
+                    <input type="radio" id="density" name="vizMode" value="density">
+                    <label for="density">Density</label>
+                </div>
+            </div>    
+        </div>
+
+        <div class="simulation-area">
+            <canvas id="fea-canvas"></canvas>
+            <div class="colorbar-container">
+                <canvas id="colorbar" class="colorbar"></canvas>
+                <div class="colorbar-labels" id="colorbar-labels">
+                    <span id="max-label">1.0</span>
+                    <span id="mid-label">0.5</span>
+                    <span id="min-label">0.0</span>
+                </div>
+                <div class="colorbar-title" id="colorbar-title">Velocity</div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <span>Min: <span id="min-value">0.00</span></span>
+            <span>Max: <span id="max-value">0.00</span></span>
+            <span>Avg: <span id="avg-value">0.00</span></span>
+        </div>
+
+        <div class="legend">
+            <span id="legend-text">Velocity field visualization with contour mapping</span>
+        </div>
+    </div>
+
     <script src="FEAnozzle.js" defer></script>
     <script src="loadBanner.js" defer></script>
 </body>
