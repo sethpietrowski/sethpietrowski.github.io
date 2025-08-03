@@ -286,7 +286,8 @@ function updateConvergenceHistory(residuals) {
     }
 }
 
-function updateFlow() {
+//noting that this is a "stabilized" simulation
+function updateFlowStabilized() {
     if (simulationState !== 'running') return false;
 
     storePreviousIteration();
@@ -296,8 +297,12 @@ function updateFlow() {
     const V_inlet = 0.8;
     const T_inlet = 2.0;
     const rho_inlet = 1.5;
-    const relaxation = 0.25;
-    const dt = 0.005;
+    const relaxation = 0.15;
+    
+    //Adaptive time stepping - incorporates CFL condition
+    const maxVel = Math.max(...velocityX.flat(), ...velocityY.flat());
+    const cfl = 0.5; // CFL number - generally taken as 0.5, up to 0.9
+    const dt = Math.min(0.001, cfl * Math.min(cellWidth, cellHeight) / Math.max(maxVel, 1.0));
 
     //temporary arrays for smooth updates
     const newVx  = velocityX.map(row => [...row]);
@@ -319,9 +324,9 @@ function updateFlow() {
         }
     }
     
-    //update interior points
+    //update interior points, using central diff for sub, upwind for supersonic
     for (let row = 2; row < rows - 2; row++) {
-        for (let col = 5; col < cols - 5; col++) {
+        for (let col = 3; col < cols - 3; col++) {
             if (!isInside[row][col] || isBoundary[row][col]) continue;
 
             const xCanvas = col * cellWidth + cellWidth / 2;
@@ -333,16 +338,45 @@ function updateFlow() {
             const vy = velocityY[row][col];
             const p = pressure[row][col];
 
-            //pressure gradients - central difference
-            const dpDx = (-pressure[row][col + 2] + 8 * pressure[row][col + 1] - 8 * pressure[row][col - 1] + pressure[row][col - 2]) / (12 * cellWidth);
-            const dpDy = (-pressure[row + 2][col] + 8 * pressure[row + 1][col] - 8 * pressure[row - 1][col] + pressure[row - 2][col]) / (12 * cellHeight);
+            //local speed of sound
+            const c = Math.sqrt(gamma * p / rho);
+            const mach = Math.sqrt(vx * vx + vy * vy) / c;
+            let dpDx, dpDy, dvxDx, dvxDy, dvyDx, dvyDy;
 
-            //velocity gradients - central difference
-            const dvxDx = (-velocityX[row][col + 2] + 8 * velocityX[row][col + 1] - 8 * velocityX[row][col - 1] + velocityX[row][col - 2]) / (12 * cellWidth);
-            const dvxDy = (-velocityX[row + 2][col] + 8 * velocityX[row + 1][col] - 8 * velocityX[row - 1][col] + velocityX[row - 2][col]) / (12 * cellHeight);
-            const dvyDx = (-velocityY[row][col + 2] + 8 * velocityY[row][col + 1] - 8 * velocityY[row][col - 1] + velocityY[row][col - 2]) / (12 * cellWidth);
-            const dvyDy = (-velocityY[row + 2][col] + 8 * velocityY[row + 1][col] - 8 * velocityY[row - 1][col] + velocityY[row - 2][col]) / (12 * cellHeight);
+            //subsonic flow
+            if (mach < 0.8) {
+                dpDx = (pressure[row][col + 1] - pressure[row][col - 1]) / (2 * cellWidth);
+                dpDy = (pressure[row + 1][col] - pressure[row - 1][col]) / (2 * cellHeight);
+                dvxDx = (velocityX[row][col + 1] - velocityX[row][col - 1]) / (2 * cellWidth);
+                dvxDy = (velocityX[row + 1][col] - velocityX[row - 1][col]) / (2 * cellHeight);
+                dvyDx = (velocityY[row][col + 1] - velocityY[row][col - 1]) / (2 * cellWidth);
+                dvyDy = (velocityY[row + 1][col] - velocityY[row - 1][col]) / (2 * cellHeight);
+            } else {
+                //supersonic flow
+                if (vx > 0) {
+                    dpDx = (pressure[row][col] - pressure[row][col - 1]) / cellWidth;
+                    dvxDx = (velocityX[row][col] - velocityX[row][col - 1]) / cellWidth;
+                    dvyDx = (velocityY[row][col] - velocityY[row][col - 1]) / cellWidth;
+                } else {
+                    dpDx = (pressure[row][col + 1] - pressure[row][col]) / cellWidth;
+                    dvxDx = (velocityX[row][col + 1] - velocityX[row][col]) / cellWidth;
+                    dvyDx = (velocityY[row][col + 1] - velocityY[row][col]) / cellWidth;
+                }
 
+                if (vy > 0) {
+                    dpDy = (pressure[row][col] - pressure[row - 1][col]) / cellHeight;
+                    dvxDy = (velocityX[row][col] - velocityX[row - 1][col]) / cellHeight;
+                    dvyDy = (velocityY[row][col] - velocityY[row - 1][col]) / cellHeight;
+                } else {
+                    dpDy = (pressure[row + 1][col] - pressure[row][col]) / cellHeight;
+                    dvxDy = (velocityX[row + 1][col] - velocityX[row][col]) / cellHeight;
+                    dvyDy = (velocityY[row + 1][col] - velocityY[row][col]) / cellHeight;
+                }
+            }
+
+            //artificial viscosity for stability
+            const artificialViscosity = calculateArtificialViscosity(row, col, mach, rho);
+    
             //wall influence
             const centerY = canvas.height / 2;
             const localRadius = getLocalRadius(xCanvas);
@@ -355,41 +389,51 @@ function updateFlow() {
                 const distFromCenter = Math.abs(yCanvas - centerY);
                 const radialPosition = distFromCenter / localRadius;
                 const wallGradient = Math.sin(wallAngle);
-
-                expansionFactorY = wallGradient * vx * radialPosition * 0.1;
+                expansionFactorY = wallGradient * vx * radialPosition * 0.05;
                 if (yCanvas > centerY) expansionFactorY = -expansionFactorY;
             }
 
             //momentum equations
             const convectiveX = vx * dvyDx + vy * dvxDy;
             const convectiveY = vx * dvxDx + vy * dvyDy;
-            const accelerationX = -dpDx / Math.max(rho, 0.5) - convectiveX * 0.3;
-            const accelerationY = -dpDy / Math.max(rho, 0.5) - convectiveY * 0.3 + expansionFactorY;
+            const accelerationX = -dpDx / Math.max(rho, 0.5) - convectiveX * 0.2 + artificialViscosity.x;
+            const accelerationY = -dpDy / Math.max(rho, 0.5) - convectiveY * 0.2 + expansionFactorY + artificialViscosity.y;
+
+
+            // Clamp acceleration, necessary for stability
+            const maxAccel = 5.0;
+            const accelX = Math.max(-maxAccel, Math.min(maxAccel, accelerationX));
+            const accelY = Math.max(-maxAccel, Math.min(maxAccel, accelerationY));
 
             //update velocities
-            newVx[row][col] = vx + accelerationX * dt;
-            newVy[row][col] = vy + accelerationY * dt;
+            newVx[row][col] = vx + accelX * dt;
+            newVy[row][col] = vy + accelY * dt;
 
             //apply limits
-            newVx[row][col] = Math.max(0.05, Math.min(4.0, newVx[row][col]));
-            newVy[row][col] = Math.max(-1.5, Math.min(1.5, newVy[row][col]));
+            const maxVx = 3.0, maxVy = 1.5;
+            newVx[row][col] = Math.max(0.01, Math.min(maxVx, newVx[row][col]));
+            newVy[row][col] = Math.max(-maxVy, Math.min(maxVy, newVy[row][col]));
             
             //update pressure with continuity
             const speedSq = newVx[row][col] * newVx[row][col] + newVy[row][col] * newVy[row][col];
             const oldSpeedSq = vx * vx + vy * vy;
 
-            //energy-based pressure update
-            newP[row][col] = p - 0.2 * rho * (speedSq - oldSpeedSq) - p * (dvxDx + dvyDy) * dt * 0.3;
-            newP[row][col] = Math.max(0.05, newP[row][col]);
+            //isentropic relations for pressure updates
+            const totalEnthalpy = gamma / (gamma - 1) * p / rho + 0.5 * oldSpeedSq;
+            const newSpeedSq = Math.min(speedSq, 2 * totalEnthalpy * (gamma - 1) / gamma);
 
-            //isent flow
-            const pressureRatio = Math.max(0.01, newP[row][col] / P_inlet);
-            newT[row][col] = T_inlet * Math.pow(pressureRatio, (gamma - 1) / gamma);
-            newRho[row][col] = rho_inlet * Math.pow(pressureRatio, 1 / gamma);
-            
+            const newStaticEnthalpy = totalEnthalpy - 0.5 * newSpeedSq;
+            newT[row][col] = Math.max(0.1, newStaticEnthalpy * (gamma - 1) / gamma);
+            newP[row][col] = Math.max(0.05, newT[row][col] * rho);
+
+            //Isentropic density update
+            const pressureRatio = Math.max(0.01, Math.min(5.0, newP[row][col] / P_inlet));
+            newRho[row][col] = Math.max(0.1, rho_inlet * Math.pow(pressureRatio, 1 / gamma));
+
             //limits
             newT[row][col] = Math.max(0.1, Math.min(3.0, newT[row][col]));
-            newRho[row][col] = Math.max(0.1, Math.min(3.0, newRho[row][col]));
+            newP[row][col] = Math.max(0.05, Math.min(4.0, newP[row][col]));
+            newRho[row][col] = Math.max(0.1, Math.min(2.0, newRho[row][col]));
         }
     }
 
@@ -480,8 +524,6 @@ function updateFlow() {
     //calculate residuals and check convergence
     const residuals = calculateResiduals();
     updateConvergenceHistory(residuals);
-
-    //update display
     updateConvergenceDisplay(residuals);
 
     //check for convergence
@@ -506,7 +548,7 @@ function createColorbar(minVal, maxVal, mode) {
         const ratio = i/20;
         const value = minVal + ratio * (maxVal - minVal);
         const color = getColorFromValue(value, minVal, maxVal, mode);
-        gradient.addColorStop(1-ratio, color);
+        gradient.addColorStop(1 - ratio, color);
     }
 
     colorbarCtx.fillStyle = gradient;
@@ -655,6 +697,48 @@ function createNozzleGeometry() {
     ctx.stroke();
 
     ctx.restore();
+}
+
+//artificial viscosity required for stability
+function calculateArtificialViscosity(row, col, mach, rho) {
+    if (mach < 0.5 || row <= 0 || row >= rows - 1 || col <= 0 || col >= cols - 1) {
+        return { x: 0, y: 0 };
+    }
+
+    //velocity gradients
+    const dvxDx = (velocityX[row][col + 1] - velocityX[row][col - 1]) / (2 * cellWidth);
+    const dvxDy = (velocityX[row + 1][col] - velocityX[row - 1][col]) / (2 * cellHeight);
+    const dvyDx = (velocityY[row][col + 1] - velocityY[row][col - 1]) / (2 * cellWidth);
+    const dvyDy = (velocityY[row + 1][col] - velocityY[row - 1][col]) / (2 * cellHeight);
+
+    //Von Neumann-Richtmyer artificial viscosity
+    const C1 = 0.1, C2 = 0.2;
+    const divergence = dvxDx + dvyDy;
+
+    if (divergence < 0) { //compression
+        const viscosity = -(C1 * Math.abs(divergence) + C2 * divergence * divergence) * 
+                         rho * Math.min(cellWidth, cellHeight);
+        return { 
+            x: viscosity * dvxDx, 
+            y: viscosity * dvyDy 
+        };
+    }
+
+    return { x: 0, y: 0 };
+}
+
+//Slope limiter for TVD schemes
+function slopeLimiter(r, limiterType = 'minmod') {
+    switch(limiterType) {
+        case 'minmod':
+            return Math.max(0, Math.min(1, r));
+        case 'superbee':
+            return Math.max(0, Math.min(2*r, 1), Math.min(r, 2));
+        case 'vanLeer':
+            return (r + Math.abs(r)) / (1 + Math.abs(r));
+        default:
+            return Math.max(0, Math.min(1, r)); //minmod is default
+    }
 }
 
 function updateSimulationStatus(status) {
@@ -820,7 +904,7 @@ function animate() {
         //update flow every other frame
         if (timeStep % 2 === 0) {
             updateTolerances();
-            const shouldContinue = updateFlow();
+            const shouldContinue = updateFlowStabilized();
             if (!shouldContinue) {
                 //simualtion converged or failed
                 if(animationId) {

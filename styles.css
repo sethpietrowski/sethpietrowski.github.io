@@ -170,6 +170,11 @@ h1 {
     transform: scale(1.2);
 }
 
+.colorbar-labels,
+.stat-value {
+    color: #ddd;
+}
+
 #fea-canvas {
     border: 3px solid rgba(255,255,255,0.3);
     border-radius: 10px;

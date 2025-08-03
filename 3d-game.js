@@ -1,5 +1,9 @@
-import * as THREE from 'https://threejs.org/build/three.module.js';
-import { PointerLockControls } from 'https://threejs.org/examples/jsm/controls/PointerLockControls.js';
+import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
+import { PointerLockControls } from 'https://unpkg.com/three@0.128.0/examples/jsm/controls/PointerLockControls.js';
+
+let activateIndicator;
+
+
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -120,17 +124,17 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
 });
 
-//overlay button fucntioning capability:
+//overlay button functioning capability:
 document.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("instructions-overlay");
   const acceptBtn = document.getElementById("accept-btn");
+  const gameArea = document.getElementById("game-area");
 
   acceptBtn.addEventListener("click", () => {
     overlay.style.display = "none";
   });
 
-  const gameArea = document.getElementById("game-area");
-  const activateIndicator = createElement('div', 'indicator activate', "Click Here to Activate Viewport");
+  activateIndicator = createElement('div', 'indicator activate', "Click Here to Activate Viewport");
   gameArea.appendChild(activateIndicator);
 
   //pointer lock not available on Android
@@ -139,10 +143,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.addEventListener("pointerlockchange", () => {
-    if (document.pointerLockElement === document.body) {
-      activateIndicator.style.display = 'none';
-    } else {
-      activateIndicator.style.display = 'block';
+    if (activateIndicator) {
+      activateIndicator.style.display = 
+        document.pointerLockElement === document.body ? "none" : "block";
     }
   });
 
