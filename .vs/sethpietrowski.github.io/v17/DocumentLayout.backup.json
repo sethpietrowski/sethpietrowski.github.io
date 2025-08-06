@@ -1,0 +1,71 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\Sudokhtml.html||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Sudokhtml.html||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\Sudocss.css||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Sudocss.css||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\Sudojs.js||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Sudojs.js||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Sudokhtml.html",
+              "DocumentMoniker": "C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\Sudokhtml.html",
+              "RelativeDocumentMoniker": "Sudokhtml.html",
+              "ToolTip": "C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\Sudokhtml.html",
+              "RelativeToolTip": "Sudokhtml.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2024-09-20T01:24:48.563Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Sudojs.js",
+              "DocumentMoniker": "C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\Sudojs.js",
+              "RelativeDocumentMoniker": "Sudojs.js",
+              "ToolTip": "C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\Sudojs.js",
+              "RelativeToolTip": "Sudojs.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2024-09-20T01:24:48.505Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Sudocss.css",
+              "DocumentMoniker": "C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\Sudocss.css",
+              "RelativeDocumentMoniker": "Sudocss.css",
+              "ToolTip": "C:\\Users\\origa\\Documents\\GithubPages\\sethpietrowski.github.io\\Sudocss.css",
+              "RelativeToolTip": "Sudocss.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2024-09-19T05:19:09.581Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
