@@ -2,7 +2,7 @@ import {
     createFlowDomain, 
     calculateWallAngles, 
     initializeFlow,
-    simulationState,
+    simulation,
     animationId, 
     updateSimulationStatus 
 } from "./state.js";
@@ -14,11 +14,11 @@ import { updateTolerances } from "../simulation/loop.js";
 
 class SimulationManager {
     start() {
-        if (simulationState === 'stopped' || simulationState === 'converged') {
+        if (simulation.state === 'stopped' || simulation.state === 'converged') {
             createFlowDomain();
             calculateWallAngles();
             initializeFlow();
-        } else if (simulationState === 'paused') {
+        } else if (simulation.state === 'paused') {
             updateSimulationStatus('running');
         }
         if (!animationId) {
@@ -27,7 +27,7 @@ class SimulationManager {
     }
 
     pause() {
-        if (simulationState === 'running') {
+        if (simulation.state === 'running') {
             updateSimulationStatus('paused');
             cancelAnimationFrame(animationId);
             animationId = null;

@@ -4,12 +4,12 @@ import { createNozzleGeometry } from '../rendering/nozzleGeometry.js';
 import { updateFlowStabilized } from './physics.js';
 import { drawConvergenceChart } from '../rendering/convergenceChart.js';
 import { 
-    simulationState, timeStep, totalIterations, animationId,
+    simulation, timeStep, totalIterations, animationId,
     convergenceTolerances
 } from './state.js';
 
 export function updateSimulationStatus(status) {
-    simulationState = status;
+    simulation.state = status;
     const statusElement = document.getElementById('simulation-status');
     const indicatorElement = document.getElementById('status-indicator');
     const startBtn = document.getElementById('start-btn');
@@ -49,7 +49,7 @@ export function updateTolerances() {
 
 export function animate() {
     
-    if (simulationState.value !== 'running') return;
+    if (simulation.state !== 'running') return;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -64,7 +64,7 @@ export function animate() {
                 cancelAnimationFrame(animationId);
                 animationId = null;
             }
-            simulationState.value = 'converged';
+            simulation.state = 'converged';
             updateSimulationStatus('converged');
 
             //render final state
@@ -73,12 +73,13 @@ export function animate() {
             return;
         }
     }
-    timeStep++;
+    simulation.timeStep++;
 
     //render current state
     visualizeFlow();
     createNozzleGeometry();
 
     //continue animation
-    animationId = requestAnimationFrame(animate);
+    simulation.animationId = requestAnimationFrame(animate);
+    simulation.totalIterations++;
 }

@@ -5,7 +5,13 @@ const convergenceCanvas = document.getElementById('convergence-canvas');
 const convergenceCtx = convergenceCanvas.getContext('2d');
 
 //simulation state
-export const simulationState = { value: 'stopped'};
+export const simulation = { 
+    state: 'stopped',
+    timeStep: 0,
+    totalIterations: 0,
+    animationId: null,
+};
+
 export let timeStep = 0;
 export let totalIterations = 0;
 export let animationId = null;
