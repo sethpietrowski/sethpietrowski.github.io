@@ -1,16 +1,12 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import About from './pages/About';
-import FEA from './pages/FEA';
+import FEA from './pages/FEA/FEA';
 import Sudoku from './pages/Sudoku';
 import ThreeDGame from './pages/ThreeDGame';
 import ThreeDModel from './pages/ThreeDModel';
 import Banner from './components/Banner';
+import { useState } from 'react';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -27,7 +23,6 @@ function App() {
         <Route path="/3dmodel" element={<ThreeDModel />} />
       </Routes>
     </Router>
-
   )
 }
 
