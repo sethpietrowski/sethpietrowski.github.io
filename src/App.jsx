@@ -4,7 +4,7 @@ import FEA from './pages/FEA';
 import Sudoku from './pages/Sudoku';
 import ThreeDGame from './pages/ThreeDGame';
 import ThreeDModel from './pages/ThreeDModel';
-import Banner from './components/Banner';
+import Banner from "./components/Banner/Banner";
 
 function App() {
   return (

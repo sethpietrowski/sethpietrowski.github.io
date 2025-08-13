@@ -5,10 +5,10 @@ import {
     simulation,
     animationId, 
     updateSimulationStatus 
-} from "./state.js";
+} from "../simulation/state.js";
 import { updateFlowStabilized } from "../simulation/physics.js";
 import { visualizeFlow } from "../rendering/flowVisualization.js";
-import { createNozzleGeometry } from "../rendering/nozzleGeometry.js";
+import { createNozzleGeometry } from "../geometry/nozzleGeometry.js";
 import { visualizationMode } from "../simulation/state.js";
 import { updateTolerances } from "../simulation/loop.js";
 

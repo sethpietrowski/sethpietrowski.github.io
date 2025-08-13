@@ -1,9 +1,9 @@
-import { intializeState } from './simulation';
+import { intializeState } from './simulation/state.js';
 import { createFlowDomain } from './geometry/flowDomain.js';
 import { createNozzleGeometry } from './rendering/nozzleRender.js';
 import { visualizeFlow } from './rendering/flowVisualization.js';
 import { setupControls } from './ui/controls.js';
-import { setupCanvas } from './ui/canvas.js';
+import { setupCanvas } from './rendering/canvasSetup.js';
 
 export function initFEA() {
     const feaCanvas = document.getElementById('fea-canvas');

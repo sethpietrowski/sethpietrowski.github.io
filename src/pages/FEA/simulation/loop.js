@@ -1,8 +1,8 @@
-import { ctx } from '../rendering/CanvasSetup.js';
+import { ctx } from '../rendering/canvasSetup.js';
 import { visualizeFlow } from '../rendering/flowVisualization.js';
-import { createNozzleGeometry } from '../rendering/nozzleGeometry.js';
+import { createNozzleGeometry } from '../geometry/nozzleGeometry.js';
 import { updateFlowStabilized } from './physics.js';
-import { drawConvergenceChart } from '../rendering/convergenceChart.js';
+import { drawConvergenceChart } from '../rendering/charts.js';
 import { 
     simulation, timeStep, totalIterations, animationId,
     convergenceTolerances

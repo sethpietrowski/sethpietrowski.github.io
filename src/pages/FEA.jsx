@@ -1,7 +1,7 @@
 import '../styles.css';
-import Banner from '../components/Banner';
-import { useEffect } from 'react';
-import { initFEA } from '../fea/mainFEA';
+import Banner from '../components/Banner/Banner';
+import React, { useEffect } from 'react';
+import { initFEA } from './FEA/mainFEA';
 
 export default function FEA() {
     useEffect(() => {
