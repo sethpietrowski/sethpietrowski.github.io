@@ -2,10 +2,18 @@ import '../styles.css';
 import Banner from '../components/Banner';
 import { useEffect } from 'react';
 import { initFEA } from '../FEA/mainFEA';
+import { drawConvergenceChart } from '../FEA/rendering/charts';
 
 export default function FEA() {
+    const convergenceCanvasRef = useRef(null);
+    
     useEffect(() => {
         initFEA();
+
+        // Draw convergence chart once the canvas is mounted
+        if (convergenceCanvasRef.current) {
+        drawConvergenceChart(convergenceCanvasRef.current);
+        }
     }, []);
 
     return (
@@ -87,7 +95,12 @@ export default function FEA() {
 
                     <div className="convergence-canvas">
                         <h3>Convergence History</h3>
-                        <canvas id="convergence-canvas" width="400" height="250"></canvas>
+                        <canvas
+                        ref={convergenceCanvasRef} // use the ref here
+                        id="convergence-canvas"
+                        width="400"
+                        height="250"
+                        ></canvas>
                     </div>        
                 </div>
             </div>

@@ -1,8 +1,9 @@
-import { convergenceCtx, convergenceCanvas, convergenceHistory, convergenceTolerances } from '../simulation/state.js';
+import { convergenceHistory, convergenceTolerances } from '../simulation/state.js';
 
-export function drawConvergenceChart() {
-    const canvas  = convergenceCanvas;
-    const ctx = convergenceCtx;
+export function drawConvergenceChart(canvas) {
+    
+    if (!canvas) return; // safety check
+    const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
 

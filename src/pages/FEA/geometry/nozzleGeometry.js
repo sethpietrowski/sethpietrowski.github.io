@@ -80,7 +80,7 @@ export function calculateWallAngles(cols, cellWidth, controlPoints, scaleY, canv
  * @param {number} canvasHeight - Canvas height.
  * @returns {number} Local radius.
  */
-export function getLocalRadius(x, controlPoiunts, scaleY, canvasHeight) {
+export function getLocalRadius(x, controlPoints, scaleY, canvasHeight) {
     if (x <= 0) return controlPoints.inlet_radius * scaleY;
     if (x >= controlPoints.exit_x) return controlPoints.exit_radius * scaleY;
 

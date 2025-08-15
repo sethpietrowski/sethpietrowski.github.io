@@ -1,5 +1,5 @@
 import { visualizeFlow } from "../rendering/flowVisualization.js";
-import { createFlowDomain, calculateWallAngles, initializeFlow, simulationState, rows, cols } from "./state.js";
+import { createFlowDomain, calculateWallAngles, initializeFlow, rows, cols } from "./state.js";
 import { createNozzleGeometry } from "../rendering/nozzleGeometry.js";
 import { setupCanvas } from "./canvas.js";
 
@@ -15,7 +15,7 @@ export function setupResize(canvas) {
 
         const gridChanged = (rows !== oldRows || cols !== oldCols);
 
-        if (simulationState === 'stopped' && gridChanged) {
+        if (simulation.state === 'stopped' && gridChanged) {
             initializeFlow();
         }
 

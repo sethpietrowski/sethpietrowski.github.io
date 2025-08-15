@@ -1,16 +1,11 @@
-import { 
-    createFlowDomain, 
-    calculateWallAngles, 
-    initializeFlow,
-    simulation,
-    animationId, 
-    updateSimulationStatus 
-} from "../simulation/state.js";
+import { initializeFlow, simulation, animationId } from "../simulation/state.js";
 import { updateFlowStabilized } from "../simulation/physics.js";
 import { visualizeFlow } from "../rendering/flowVisualization.js";
-import { createNozzleGeometry } from "../geometry/nozzleGeometry.js";
-import { visualizationMode } from "../simulation/state.js";
-import { updateTolerances } from "../simulation/loop.js";
+import { createNozzleGeometry } from "../rendering/nozzleRender.js";
+import { calculateWallAngles } from "../geometry/nozzleGeometry.js";
+//import { visualizationMode } from "../simulation/state.js";
+import { updateTolerances, updateSimulationStatus } from "../simulation/loop.js";
+import { createFlowDomain } from "../geometry/flowDomain.js";
 
 class SimulationManager {
     start() {

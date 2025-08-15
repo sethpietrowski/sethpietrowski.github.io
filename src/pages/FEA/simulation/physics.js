@@ -1,14 +1,21 @@
 import { velocityX, velocityY, pressure, density, temperature,
         rows, cols, cellWidth, cellHeight, isInside, isBoundary,
-        simulationState, totalIterations, 
-        controlPoints, scaleY, wallAngleTop, wallAngleBottom,
-        calculateArtificialViscosity, getLocalRadius, getWallY,
-        storePreviousIteration, calculateResiduals, updateConvergenceHistory,
-        updateConvergenceDisplay, checkConvergence, updateSimulationStatus } from './state.js';
+        totalIterations, controlPoints, scaleY, wallAngleTop,
+        wallAngleBottom } from './state.js';
+
+import { calculateArtificialViscosity } from './stability.js';
+
+import { calculateResiduals, checkConvergence, storePreviousIteration, 
+        updateConvergenceHistory } from './convergence.js';
+
+import { updateSimulationStatus, updateConvergenceDisplay } from './loop.js';
+
+import { getLocalRadius, getWallY } from '../geometry/nozzleGeometry.js';
+
 
 //noting that this is a "stabilized" simulation
 export function updateFlowStabilized() {
-    if (simulationState !== 'running') return false;
+    if (simulation.state !== 'running') return false;
 
     storePreviousIteration();
 

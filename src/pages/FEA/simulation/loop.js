@@ -1,6 +1,5 @@
-import { ctx } from '../rendering/canvasSetup.js';
 import { visualizeFlow } from '../rendering/flowVisualization.js';
-import { createNozzleGeometry } from '../geometry/nozzleGeometry.js';
+import { createNozzleGeometry } from '../rendering/nozzleRender.js';
 import { updateFlowStabilized } from './physics.js';
 import { drawConvergenceChart } from '../rendering/charts.js';
 import { 
@@ -38,7 +37,13 @@ export function updateConvergenceDisplay(residuals) {
     document.getElementById('pressure-residual').textContent = residuals.pressure.toExponential(3);
     document.getElementById('mass-residual').textContent = residuals.mass.toExponential(3);
 
-    drawConvergenceChart();
+    const convergenceCanvasRef = useRef(null);
+
+    useEffect(() => {
+    if (convergenceCanvasRef.current) {
+        drawConvergenceChart(convergenceCanvasRef.current);
+    }
+    }, []);
 }
 
 export function updateTolerances() {
@@ -51,6 +56,7 @@ export function animate() {
     
     if (simulation.state !== 'running') return;
     
+    const ctx = convergenceCtx;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     //update flow every other frame

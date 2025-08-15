@@ -1,3 +1,4 @@
+import { updateSimulationStatus } from './loop.js';
 
 const colorbarCanvas = document.getElementById('colorbar');
 const colorbarCtx = colorbarCanvas.getContext('2d');
