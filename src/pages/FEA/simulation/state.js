@@ -1,9 +1,9 @@
 import { updateSimulationStatus } from './loop.js';
 
-const colorbarCanvas = document.getElementById('colorbar');
-const colorbarCtx = colorbarCanvas.getContext('2d');
-const convergenceCanvas = document.getElementById('convergence-canvas');
-const convergenceCtx = convergenceCanvas.getContext('2d');
+const colorbarCanvas = null;
+const colorbarCtx = null;
+const convergenceCanvas = null;
+const convergenceCtx = null;
 
 //simulation state
 export const simulation = { 
@@ -16,7 +16,6 @@ export const simulation = {
 export let timeStep = 0;
 export let totalIterations = 0;
 export let animationId = null;
-
 export let visualizationMode = 'velocity';
 
 //convergence tracking
@@ -34,7 +33,7 @@ export let convergenceTolerances = {
 };
 
 export const nozzleWidth = 700;
-export const canvasSize = setupCanvas();
+export const canvasSize = { width: 1000, height: 500}; //default vals
 export const scaleX = canvasSize.width / nozzleWidth;
 
 //grid setup
@@ -73,19 +72,37 @@ export const controlPoints = {
     exit_x: 700 * scaleX, exit_radius: 150
 };
 
-export const scaleY = canvasSize.height / 2 / controlPoints.exit_radius;
+export const scaleY = 1;
 
 export function setupCanvas() {
-    const canvas = document.getElementById('fea-canvas');
-    const width = canvas ? canvas.canvas.width : 1000;
-    const height = canvas ? canvas.canvas.height : 500;
+    colorbarCanvas = document.getElementById('colorbar');
+    convergenceCanvas = document.getElementById('convergence-canvas');
+    const feaCanvas = document.getElementById('fea-canvas');
+    
+    if (colorbarCanvas) {
+        colorbarCtx = colorbarCanvas.getContext('2d');
+        colorbarCanvas.width = 30;
+        colorbarCanvas.height = 400;
+    }
 
-    colorbarCanvas.width = 30;
-    colorbarCanvas.height = 400;
-    convergenceCanvas.width = 400;
-    convergenceCanvas.height = 250;
+    if (convergenceCanvas) {
+        convergenceCtx = convergenceCanvas.getContext('2d');
+        convergenceCanvas.width = 400;
+        convergenceCanvas.height = 250;
+    }
 
-    return {width, height};
+    if (feaCanvas) {
+        canvasSize = {
+            width: feaCanvas.width,
+            height: feaCanvas.height
+        };
+    }
+    
+    //update derived values
+    scaleX = canvasSize.width / nozzleWidth;
+    callWidth = canvasSize.width / cols;
+    callHeight = canvasSize.height / rows;
+    scaleY = canvasSize.height / 2 / controlPoints.exit_radius;
 }
 
 // Basic flow simulation (need to update with real physics)
