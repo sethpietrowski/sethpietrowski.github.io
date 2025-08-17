@@ -1,9 +1,19 @@
 import { updateSimulationStatus } from './loop.js';
 
+let _animationId = null;
+
 const colorbarCanvas = null;
 const colorbarCtx = null;
 const convergenceCanvas = null;
 const convergenceCtx = null;
+
+export function setAnimationId(id) {
+    _animationId = id;
+}
+
+export function getAnimationId() {
+    return _animationId;
+}
 
 //simulation state
 export const simulation = { 

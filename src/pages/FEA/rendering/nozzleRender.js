@@ -1,9 +1,9 @@
-export function createNozzleGeometry() {
-    const cp = controlPoints;
-
+export function createNozzleGeometry(ctx, controlPoints, scaleY) {
+    const canvas = ctx.canvas;
     ctx.save();
     ctx.translate(0, canvas.height / 2);
 
+    const cp = controlPoints;
     ctx.beginPath();
 
     ctx.moveTo(0, cp.inlet_radius * scaleY);

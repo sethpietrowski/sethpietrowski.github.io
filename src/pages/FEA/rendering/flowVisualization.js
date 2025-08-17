@@ -1,17 +1,10 @@
-
-export function visualizeFlow() {
-    let dataArray, minVal, maxVal;
+export function visualizeFlow(ctx, controlPoints, scaleY, rows, cols, velocityX, velocityY, pressure, temperature, density, isInside, isBoundary, cellWidth, cellHeight, visualizationMode) {
+    let dataArray;
 
     switch(visualizationMode) {
-        case 'pressure':
-            dataArray = pressure;
-            break;
-        case 'temperature':
-            dataArray = temperature;
-            break;
-        case 'density':
-            dataArray = density;
-            break;
+        case 'pressure': dataArray = pressure; break;
+        case 'temperature': dataArray = temperature; break;
+        case 'density': dataArray = density; break;
         case 'velocity':
             dataArray = Array.from({ length: rows }, (_, row) =>
                 Array.from({ length: cols }, (_, col) =>
@@ -19,8 +12,7 @@ export function visualizeFlow() {
                 )
             );
             break;
-        default:
-            dataArray = pressure;
+        default: dataArray = pressure;
     }
 
     //min/max from inside domain only
@@ -42,14 +34,19 @@ export function visualizeFlow() {
     maxVal = Math.max(...flatData);
     const avgVal = flatData.reduce((a, b) => a + b, 0) / flatData.length;
 
-    document.getElementById('min-value').textContent = minVal.toFixed(3);
-    document.getElementById('max-value').textContent = maxVal.toFixed(3);
-    document.getElementById('avg-value').textContent = avgVal.toFixed(3);
-    createColorbar(minVal, maxVal, visualizationMode);
+    const minElement = document.getElementById('min-value');
+    const maxElement = document.getElementById('max-value');
+    const avgElement = document.getElementById('avg-value');
+
+    if (minElement) minElement.textContent = minVal.toFixed(3);
+    if (maxElement) maxElement.textContent = maxVal.toFixed(3);
+    if (avgElement) avgElement.textContent = avgVal.toFixed(3);
 
     //antialiasing 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
+
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
@@ -60,11 +57,17 @@ export function visualizeFlow() {
             ctx.fillRect(col * cellWidth, row * cellHeight, cellWidth, cellHeight);
         }
     }
+    //update colorbar
+    createColorbar(minVal, maxVal, visualizationMode);
 }
 
 export function createColorbar(minVal, maxVal, mode) {
-    const height = 300;
-    const width = 30;
+    const colorbarCanvas = document.getElementById('colorbar');
+    if (!colorbarCanvas) return;
+
+    const colorbarCtx = colorbarCanvas.getContext('2d');
+    const height = colorbarCanvas.height;
+    const width = colorbarCanvas.width;
 
     colorbarCtx.clearRect(0, 0, width, height);
 
@@ -85,9 +88,14 @@ export function createColorbar(minVal, maxVal, mode) {
     colorbarCtx.lineWidth = 1;
     colorbarCtx.strokeRect(0, 0, width, height);
 
-    document.getElementById('max-label').textContent = maxVal.toFixed(3);
-    document.getElementById('mid-label').textContent = ((maxVal + minVal) / 2).toFixed(3);
-    document.getElementById('min-label').textContent = minVal.toFixed(3);
+    const maxLabel = document.getElementById('max-label');
+    const midLabel = document.getElementById('mid-label');
+    const minLabel = document.getElementById('min-label');
+    const titleLabel = document.getElementById('colorbar-title');
+
+    if (maxLabel) maxLabel.textContent = maxVal.toFixed(3);
+    if (midLabel) midLabel.textContent = ((maxVal + minVal) / 2).toFixed(3);
+    if (minLabel) minLabel.textContent = minVal.toFixed(3);
 
     const titles = {
         'velocity': 'Velocity',
@@ -95,7 +103,7 @@ export function createColorbar(minVal, maxVal, mode) {
         'temperature': 'Temperature',
         'density': 'Density'
     };
-    document.getElementById('colorbar-title').textContent = titles[mode] || 'Value';
+    if (titleLabel) titleLabel.textContent = titles[mode] || 'Value';
 }
         
 export function getColorFromValue(value, minVal, maxVal, mode) {
