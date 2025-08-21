@@ -3,7 +3,7 @@ import Banner from '../components/Banner';
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { initFEA } from '../FEA/mainFEA';
 import { drawConvergenceChart } from '../FEA/rendering/charts';
-import { simulation, totalIterations } from './simulation/state';
+//import { simulation, totalIterations } from './simulation/state';
 
 export default function FEA() {
     const convergenceCanvasRef = useRef(null);
@@ -22,10 +22,11 @@ export default function FEA() {
 
     const simulationRef = useRef(null);
     const animationFrameRef = useRef(null);
+    const [isInitialized, setIsInitialized] = useState(false);
 
 
      // Define your simulation data
-    const simulationData = {
+    const simulationData = useRef({
         controlPoints: {
             inlet_radius: 20,
             inlet_length: 50,
@@ -42,7 +43,7 @@ export default function FEA() {
         cellWidth: 5,
         cellHeight: 5,
         canvasHeight: 500,
-        visualizationMode: 'velocity',
+        visualizationMode: visualizationMode,
         // empty arrays to be populated by createFlowDomain
         velocityX: [],
         velocityY: [],
@@ -51,16 +52,14 @@ export default function FEA() {
         density: [],
         isInside: [],
         isBoundary: [],
-    };
+    });
 
     useEffect(() => {
-        if (simulationData.current) {
-            simulationData.current.visualizationMode = visualizationMode;
-            if (simulationRef.current && simulationRef.current.updateVisualization) {
-                simulationRef.current.updateVisualization();
-            }
+        if (isInitialized && simulationData.current && simulationRef.current.updateVisualization) {
+            simulationData.visualizationMode = visualizationMode;
+            simulationRef.current.updateVisualization();
         }
-    }, [visualizationMode]);
+    }, [visualizationMode, isInitialized]);
 
     const handleStart = useCallback(() => {
         if (simulationRef.current && simulationRef.current.start) {
@@ -101,49 +100,71 @@ export default function FEA() {
     }, []);
 
     useEffect(() => {
-        const initializeSimulation = async () => {
-            if (canvasRef.current && simulationData.current) {
-                try {
-                    const ctx = canvasRef.current.getContext('2d');
-                    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        let timeoutId;
 
-                    simulationRef.current = await initFEA(canvasRef.current, simulationData.current);
-                    
-                    if (simulationRef.current && simulationRef.current.setCallbacks) {
-                        simulationRef.current.setCallbacks({
-                            onStatusUpdate: setSimulationStatus,
-                            onStatsUpdate: setStats,
-                            onConvergenceUpdate: setConvergenceData
-                        });
-                    }
+        const initializeSimulation = () => {
+            console.log('Initializing simulation...');
+            console.log('Canvas ref:', canvasRef.current);
+            console.log('Simulation data:', simulationData.current);
 
-                    setSimulationStatus('Ready');
-                } catch (error) {
-                    console.error('Failed to initialize FEA', error);
-                    setSimulationStatus('Error');
+            
+            if (!canvasRef.current) {
+                console.log('Canvas not ready yet, retrying');
+                timeoutId = setTimeout(initializeSimulation, 100);
+                return;
+            }
+
+            try {
+                console.log('Canvas is ready, initializing FEA...');
+                const ctx = canvasRef.current.getContext('2d');
+                ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+                simulationData.visualizationMode = visualizationMode;
+                
+                simulationRef.current = initFEA(canvasRef.current, simulationData);
+                
+                if (simulationRef.current && simulationRef.current.setCallbacks) {
+                    simulationRef.current.setCallbacks({
+                        onStatusUpdate: setSimulationStatus,
+                        onStatsUpdate: setStats,
+                        onConvergenceUpdate: setConvergenceData
+                    });
                 }
+
+                setIsInitialized(true);
+                setSimulationStatus('Ready');
+                console.log('Simulation initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize FEA', error);
+                setSimulationStatus('Error');
             }
         };
 
-        initializeSimulation();
+        timeoutId = setTimeout(initializeSimulation, 200);
 
-        if (convergenceCanvasRef.current) {
-            try {
-                drawConvergenceChart(convergenceCanvasRef.current);
-            } catch (error) {
-                console.error('Failed to draw convergence chart', error);
+        const initChart = () => {
+            if (convergenceCanvasRef.current) {
+                try {
+                    drawConvergenceChart(convergenceCanvasRef.current);
+                } catch (error) {
+                    console.error('Failed to draw convergence chart', error);
+                }
             }
-        }
+        };
+        setTimeout(initChart, 300);
 
         //cleanup function
         return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);                
+            }    
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
             if (simulationRef.current && simulationRef.current.cleanup) {
                 simulationRef.current.cleanup();
             }
-        }
+        };
     }, []);
 
     const handleVisualizationModeChange = useCallback((e) => {
@@ -172,7 +193,7 @@ export default function FEA() {
                                 {stats.avg.toFixed(3)}
                             </div>
                             <div id="min-label" className="colorbar-labels">
-                                {stats.max.toFixed(3)}
+                                {stats.min.toFixed(3)}
                             </div>
                         </div>
                     </div>
@@ -189,10 +210,10 @@ export default function FEA() {
                             Min: <span id="min-value" className="stat-value">{stats.min.toFixed(2)}</span>
                         </div>
                         <div className="stat-item">
-                            Avg: <span id="avg-value" className="stat-value">{stats.min.toFixed(2)}</span>
+                            Avg: <span id="avg-value" className="stat-value">{stats.avg.toFixed(2)}</span>
                         </div>
                         <div className="stat-item">
-                            Max: <span id="max-value" className="stat-value">{stats.min.toFixed(2)}</span>
+                            Max: <span id="max-value" className="stat-value">{stats.max.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
@@ -201,7 +222,7 @@ export default function FEA() {
                     <div className="convergence-info">
                         <h3>Simulation Status</h3>
                         <div className="convergence-metric">
-                            <span className={`status-indicator" ${simulationStatus.toLowerCase()}`}
+                            <span className={`status-indicator ${simulationStatus.toLowerCase()}`}
                                 id="status-indicator"
                             ></span>
                             Status: <span id="simulation-status">{simulationStatus}</span>

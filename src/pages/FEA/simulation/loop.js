@@ -8,9 +8,14 @@ import {
 } from './state.js';
 
 let simulationData = null;
+let callbacks = null;
 
 export function setSimulationDataForLoop(data) {
     simulationData = data;
+}
+
+export function setCallbacks(newCallbacks) {
+    callbacks = newCallbacks;
 }
 
 export function updateSimulationStatus(status) {
@@ -36,6 +41,10 @@ export function updateSimulationStatus(status) {
     indicatorElement.className = config.class;
     startBtn.disabled = config.startDisabled;
     pauseBtn.disabled = config.pauseDisabled;
+
+    if (callbacks?.onStatusUpdate) {
+        callbacks.onStatusUpdate(config.text);
+    }
 }
 
 export function updateConvergenceDisplay(residuals) {
@@ -50,6 +59,16 @@ export function updateConvergenceDisplay(residuals) {
     if (velocityResidualElement) velocityResidualElement.textContent = residuals.velocity.toExponential(3);
     if (pressureResidualElement) pressureResidualElement.textContent = residuals.pressure.toExponential(3);
     if (massResidualElement) massResidualElement.textContent = residuals.mass.toExponential(3);
+
+    if (callbacks?.onConvergenceUpdate) {
+        callbacks.onConvergenceUpdate({
+            timeStep: simulation.timeStep,
+            totalIterations: simulation.totalIterations,
+            velocityResidual: residuals.velocity.toExponential(3),
+            pressureResidual: residuals.pressure.toExponential(3),
+            massResidual: residuals.mass.toExponential(3),
+        });
+    }
 
     const convergenceCanvas = document.getElementById('convergence-canvas');
     if (convergenceCanvas) {
@@ -98,7 +117,13 @@ export function animate() {
     //update flow every other frame
     if (simulation.timeStep % 2 === 0) {
         updateTolerances();
-        const shouldContinue = updateFlowStabilized();
+
+        let shouldContinue;
+        try {
+            shouldContinue = updateFlowStabilized();
+        } catch (e) {
+            console.error('Error updating flow: ', e);
+        }
 
         if (!shouldContinue) {
             //simulation converged or failed
@@ -126,7 +151,8 @@ export function animate() {
                 simulationData.isBoundary,
                 simulationData.cellWidth,
                 simulationData.cellHeight,
-                simulationData.visualizationMode
+                simulationData.visualizationMode,
+                callbacks
             );
             createNozzleGeometry(ctx, simulationData.controlPoints, simulationData.scaleY);
             return;
@@ -134,6 +160,7 @@ export function animate() {
     }
 
     simulation.timeStep++;
+    simulation.totalIterations++;
 
     //render current state
     visualizeFlow(
@@ -151,12 +178,12 @@ export function animate() {
         simulationData.isBoundary,
         simulationData.cellWidth,
         simulationData.cellHeight,
-        simulationData.visualizationMode
-    )
+        simulationData.visualizationMode,
+        callbacks
+    );
     createNozzleGeometry(ctx, simulationData.controlPoints, simulationData.scaleY);
 
     //continue animation
     const newAnimationId = requestAnimationFrame(animate);
     setAnimationId(newAnimationId);
-    simulation.totalIterations++;
 }

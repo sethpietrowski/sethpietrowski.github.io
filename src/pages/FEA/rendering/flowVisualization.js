@@ -1,4 +1,7 @@
-export function visualizeFlow(ctx, controlPoints, scaleY, rows, cols, velocityX, velocityY, pressure, temperature, density, isInside, isBoundary, cellWidth, cellHeight, visualizationMode) {
+let minVal = 0;
+let maxVal = 1;
+
+export function visualizeFlow(ctx, controlPoints, scaleY, rows, cols, velocityX, velocityY, pressure, temperature, density, isInside, isBoundary, cellWidth, cellHeight, visualizationMode, callbacks = null) {
     let dataArray;
 
     switch(visualizationMode) {
@@ -42,6 +45,13 @@ export function visualizeFlow(ctx, controlPoints, scaleY, rows, cols, velocityX,
     if (maxElement) maxElement.textContent = maxVal.toFixed(3);
     if (avgElement) avgElement.textContent = avgVal.toFixed(3);
 
+    if (callbacks?.onStatsUpdate) {
+        callbacks.onStatsUpdate({ 
+            min: minVal, 
+            max: maxVal, 
+            avg: avgVal 
+        });
+    }
     //antialiasing 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';

@@ -7,7 +7,7 @@ import { setupCanvas } from './rendering/canvasSetup.js';
 import { updateSimulationStatus, setSimulationDataForLoop } from './simulation/loop.js';
 import { setSimulationDataForPhysics } from './simulation/physics.js';
 import { setSimulationDataForResize, setupResize } from './ui/resize.js';
-import { simulation } from './simulation/state.js';
+import { simulation, setAnimationId } from './simulation/state.js';
 
 export function initFEA(canvas, simulationData) {
     console.log('=== FEA debugging ===');
@@ -102,7 +102,7 @@ export function initFEA(canvas, simulationData) {
             console.error('Error drawing nozzle geometry: ', e);
         }
 
-        console.log('Initializingtest flow data...');
+        console.log('Initializing test flow data...');
         const rows = simulationData.rows;
         const cols = simulationData.cols;
 
@@ -146,7 +146,8 @@ export function initFEA(canvas, simulationData) {
                 simulationData.isBoundary,
                 simulationData.cellWidth,
                 simulationData.cellHeight,
-                simulationData.visualizationMode
+                simulationData.visualizationMode,
+                callbacks
             );
             console.log('Flow visualization completed');
         } catch (e) {
@@ -163,4 +164,125 @@ export function initFEA(canvas, simulationData) {
 
         console.log('=== FEA initialization complete ===');
     }, 100); //small delay to see test square
+
+    return {
+        start: () => {
+            console.log('Starting simulation...');
+            simulation.state = 'running';
+            updateSimulationStatus('running');
+            if (callbacks?.onStatusUpdate) {
+                callbacks.onStatusUpdate('running');
+            }
+            const animationId = requestAnimationFrame(animate);
+            setAnimationId(animationId);
+        },
+        pause: () => {
+            console.log('Pausing simulation...');
+            simulation.state = 'paused';
+            updateSimulationStatus('paused');
+            if (callbacks?.onStatusUpdate) {
+                callbacks.onStatusUpdate('paused');
+            }
+        },
+        reset: () => {
+            console.log('Resetting simulation...');
+            simulation.state = 'stopped';
+            simulation.timeStep = 0;
+            simulation.totalIterations = 0;
+
+            //reset simulation data
+            const rows = simulationData.rows;
+            const cols = simulationData.cols;
+
+            simulationData.velocityX = Array.from({ length: rows }, () => Array(cols).fill(0));
+            simulationData.velocityY = Array.from({ length: rows }, () => Array(cols).fill(0));
+            simulationData.pressure = Array.from({ length: rows }, () => Array(cols).fill(101325));
+            simulationData.temperature = Array.from({ length: rows }, () => Array(cols).fill(300));
+            simulationData.density = Array.from({ length: rows }, () => Array(cols).fill(1.225));
+
+            updateSimulationStatus('stopped');
+            if (callbacks?.onStatusUpdate) {
+                callbacks.onStatusUpdate('Ready');
+            }
+            if (callbacks?.onConvergenceUpdate) {
+                callbacks.onConvergenceUpdate({
+                    timeStep: 0,
+                    totalIterations: 0,
+                    velocityResidual: '-',
+                    pressureResidual: '-',
+                    massResidual: '-',
+                });
+            }
+
+            //re-render initial state
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            try {
+                createNozzleGeometry(ctx, simulationData.controlPoints, simulationData.scaleY);
+                visualizeFlow(
+                    ctx, 
+                    simulationData.controlPoints,
+                    simulationData.scaleY,
+                    simulationData.rows,
+                    simulationData.cols,
+                    simulationData.velocityX,
+                    simulationData.velocityY,
+                    simulationData.pressure,
+                    simulationData.density,
+                    simulationData.temperature,
+                    simulationData.isInside,
+                    simulationData.isBoundary,
+                    simulationData.cellWidth,
+                    simulationData.cellHeight,
+                    simulationData.visualizationMode,
+                    callbacks
+                );
+            } catch (e) {
+                console.error('Error rendering reset state: ', e);
+            }
+        },
+        setTolerance: (type, value) => {
+            console.log(`Setting ${type} tolerance to ${value}`);
+        },
+        setCallbacks: (newCallbacks) => {
+            callbacks = newCallbacks;
+            console.log('Callbacks set: ', Object.keys(callbacks));
+        },
+        updateVisualization: () => {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            try {
+                createNozzleGeometry(ctx, simulationData.controlPoints, simulationData.scaleY);
+                visualizeFlow(
+                    ctx, 
+                    simulationData.controlPoints,
+                    simulationData.scaleY,
+                    simulationData.rows,
+                    simulationData.cols,
+                    simulationData.velocityX,
+                    simulationData.velocityY,
+                    simulationData.pressure,
+                    simulationData.density,
+                    simulationData.temperature,
+                    simulationData.isInside,
+                    simulationData.isBoundary,
+                    simulationData.cellWidth,
+                    simulationData.cellHeight,
+                    simulationData.visualizationMode,
+                    callbacks
+                );
+            } catch (e) {
+                console.error('Error updating visualization: ', e);
+            }
+        },
+        cleanup: () => {
+            console.log('Cleaning up simulation...');
+            simulation.state = 'stopped';
+            const animationId = getAnimationId();
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                setAnimationId(null);
+            }
+        }
+    };
 }
