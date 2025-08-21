@@ -1,24 +1,24 @@
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import About from './pages/About';
-import FEA from './pages/FEA';
+import FEA from './pages/FEA.jsx';
 import Sudoku from './pages/Sudoku';
 import ThreeDGame from './pages/ThreeDGame';
 import ThreeDModel from './pages/ThreeDModel';
 import Banner from "./components/Banner/Banner";
 
-function App() {
+export default function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Banner />
       <Routes>
         <Route path="/" element={<About />} />
+        <Route path="*" element={<About />} />
         <Route path="/fea" element={<FEA />} />
         <Route path="/sudoku" element={<Sudoku />} />
         <Route path="/3dgame" element={<ThreeDGame />} />
         <Route path="/3dmodel" element={<ThreeDModel />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   )
 }
 
-export default App;

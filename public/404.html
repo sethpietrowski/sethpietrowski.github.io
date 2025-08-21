@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting…</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      (function () {
+        // Preserve path/query/hash by passing it via ?redirect=
+        var path = location.pathname + location.search + location.hash;
+        // If you're deploying to a *project page* like /my-repo/, replace the "/" below with "/my-repo/"
+        location.replace("/?redirect=" + encodeURIComponent(path));
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
