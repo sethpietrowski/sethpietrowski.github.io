@@ -1,5 +1,6 @@
 import '../styles.css';
 import { FaGithub, FaLinkedin } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const socialLinks = [
     { name: 'Github', url: 'https://github.com/sethpietrowski', icon: FaGithub, username: 'sethpietrowski' },
@@ -7,6 +8,12 @@ const socialLinks = [
 ];
 
 export default function About() {
+    const navigate = useNavigate();
+
+    const handleProjectClick = (path) => {
+        navigate(path);
+    }
+
     return (
         <div className="about-page">
             <section className="about-section">
@@ -38,28 +45,40 @@ export default function About() {
             <div className="project-grid">
                 <div 
                     className="project-card"
-                    onClick={() => window.location.href = "/sudoku"}
+                    onClick={() => handleProjectClick("/sudoku")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleProjectClick("/sudoku")}
                 >
                     <h3>🧩 Interactive Sudoku</h3>
                     <p>Sudoku game with keyboard navigation, number input buttons, and solution validation.</p>  
                 </div>
                 <div 
                     className="project-card"
-                    onClick={() => window.location.href = "/3d-model"}
+                    onClick={() => handleProjectClick( "/3d-model")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleProjectClick("/3d-model")}
                 >
                     <h3>🎯 3D Interactive Model</h3>
                     <p>3D torus knot model with custom shaders, mouse controls, and animations using Three.js.</p>
                 </div>
                 <div 
                     className="project-card"
-                    onClick={() => window.location.href = "/3d-game"}
+                    onClick={() => handleProjectClick("/3d-game")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleProjectClick("/3d-game")}
                 >
                     <h3>🎮 3D Game Simulation</h3>
                     <p>First-person 3D environment with pointer lock controls and movement (for PC).</p>
                 </div>
                 <div 
                     className="project-card"
-                    onClick={() => window.location.href = "/fea"}
+                    onClick={() => handleProjectClick("/fea")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleProjectClick("/fea")}
                 >
                     <h3>⚡ FEA Nozzle Simulator</h3>
                     <p>Finite Element Analysis visualization of fluid flow through a rocket nozzle.</p>

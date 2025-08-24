@@ -1,74 +1,219 @@
+// physics.js - physics calculations and convergence
+
 // import { velocityX, velocityY, pressure, density, temperature,
 //         rows, cols, cellWidth, cellHeight, isInside, isBoundary,
 //         totalIterations, controlPoints, scaleY, wallAngleTop,
 //         wallAngleBottom } from './state.js';
 // import { calculateArtificialViscosity } from './stability.js';
 
-import { calculateResiduals, checkConvergence, storePreviousIteration, 
-        updateConvergenceHistory } from './convergence.js';
+// import { calculateResiduals, checkConvergence, storePreviousIteration, 
+//         updateConvergenceHistory } from './convergence.js';
 
-import { updateSimulationStatus, updateConvergenceDisplay } from './loop.js';
+// import { updateSimulationStatus, updateConvergenceDisplay } from './loop.js';
 
 // import { getLocalRadius, getWallY } from '../geometry/nozzleGeometry.js';
-import { simulation } from './state.js';
+import { simulation, convergenceHistory, convergenceTolerances } from './core.js';
 
-let simulationData = null;
+//flow intiialization
+export function initializeFlow(simulationData) {
+    const { rows, cols, isInside, isBoundary } = simulationData;
 
-export function setSimulationDataForPhysics(data) {
-    simulationData = data;
+    //inlet conditions (normalized for now, update later)
+    const P_inlet = 3.0;
+    const V_inlet = 0.8; 
+    const T_inlet = 2.0;
+    const rho_inlet = 1.5;
+
+    console.log('Initializing flow field...');
+
+    //initialize interior cells with basic flow profile
+    for (let row = 0; row < rows; row++) {
+        for(let col = 0; col < cols; col++) {
+            if (isInside[row][col] && !isBoundary[row][col]) {
+                //linear interpolation from inlet to exit
+                const progress = col / (cols - 1);
+                velocityX[row][col] = V_inlet * (1 + progress * 0.5);
+                velocityY[row][col] = 0.0;
+                pressure[row][col] = P_inlet * (1 - progress * 0.3);
+                density[row][col] = rho_inlet * (1 - progress * 0.2);
+                temperature[row][col] = T_inlet * (1 - progress * 0.1);
+            } else if (isBoundary[row][col]) {
+                //wall boundary conditions
+                simulationData.velocityX[row][col] =0.0;
+                simulationData.velocityY[row][col] = 0.0;
+            }
+        }
+    }
+
+    console.log('Flow field initialized.');
 }
 
-// Simplified flow update for initial testing
-export function updateFlowStabilized() {
+//previous iteration storage
+
+let prevVelocityX = [];
+let prevVelocityY = [];
+let prevPressure = [];
+
+function initializePreviousArrays(rows, cols) {
+    if (prevVelocityX.length ===0) {
+        prevVelocityX = Array.from({ length: rows }, () => Array(cols).fill(0));
+        prevVelocityY = Array.from({ length: rows }, () => Array(cols).fill(0));
+        prevPressure = Array.from({ length: rows }, () => Array(cols).fill(0));
+    }
+}
+
+function storePreviousIteration(simulationData) {
+    const { rows, cols, velocityX, velocityY, pressure } = simulationData;
+
+    initializePreviousArrays(rows, cols);
+
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            prevVelocityX[row][col] = velocityX[row][col];
+            prevVelocityY[row][col] = velocityY[row][col];
+            prevPressure[row][col] = pressure[row][col];
+        }
+    }
+}
+
+//residual calculations
+
+function calculateResiduals(simulationData) {
+    const { rows, cols, isInside, isBoundary, velocityX, velocityY, pressure, density, cellWidth, cellHeight } = simulationData;
+
+    let velResidual = 0, pressResidual = 0, massResidual = 0;
+    let count = 0;
+
+    for (let row = 1; row < rows - 1; row++) {
+        for (let col = 1; col < cols - 1; col++) {
+            if (isInside[row][col] && !isBoundary[row][col]) {
+                // velocity residual - L2 norm
+                const dvx = velocityX[row][col] - prevVelocityX[row][col];
+                const dvy = velocityY[row][col] - prevVelocityY[row][col];
+                velResidual += (dvx * dvx + dvy * dvy);
+
+                //Pressure residual
+                const dp = pressure[row][col] - prevPressure[row][col];
+                pressResidual += dp * dp;
+
+                //Mass conversation residual - continuity equation
+                const rho = density[row][col];
+                const rho_left = density[row][col - 1] || rho;
+                const rho_right = density[row][col + 1] || rho;
+                const rho_up = density[row - 1][col] || rho;
+                const rho_down = density[row + 1][col] || rho;
+
+                const vx_left = velocityX[row][col - 1] || velocityX[row][col];
+                const vx_right = velocityX[row][col + 1] || velocityX[row][col];
+                const vy_up = velocityY[row - 1][col] || velocityX[row][col];
+                const vy_down = velocityY[row + 1][col] || velocityX[row][col];
+
+                //continuity - d(rho*u)/dx + d(rho*v)/dy = 0
+                const drhoDx = (rho_right * vx_right - rho_left * vx_left) / (2 * cellWidth);
+                const drhoDy = (rho_down * vy_down - rho_up * vy_up) / (2 * cellHeight);
+                const massRes = Math.abs(drhoDx + drhoDy);
+                massResidual += massRes * massRes;
+
+                count++;
+            }
+        }
+    }
+
+    return {
+        velocity: Math.sqrt(velResidual / Math.max(count, 1)),
+        pressure: Math.sqrt(pressResidual / Math.max(count, 1)),
+        mass: Math.sqrt(massResidual / Math.max(count, 1))
+    };
+}
+
+//convergence checking 
+
+function updateConvergenceHistory(residuals) {
+    const history = convergenceHistory;
+
+    history.velocity.push(residuals.velocity);
+    history.pressure.push(residuals.pressure);
+    history.mass.push(residuals.mass);
+
+    //limit history size
+    if (history.velocity.length > history.maxHistory) {
+        history.velocity.shift();
+        history.pressure.shift();
+        history.mass.shift();
+    }
+}
+
+function checkConvergence(residuals) {
+    const velConverged = residuals.velocity < convergenceTolerances.velocity;
+    const pressConverged = residuals.pressure < convergenceTolerances.pressure;
+    const massConverged = residuals.mass < convergenceTolerances.mass;
+    return velConverged && pressConverged && massConverged;
+}
+
+//main Physics update function
+
+/**
+ * Update flow field - simplified version for testing
+ * @param {object} simulationData - Main simulation data object
+ * @returns {boolean} True to continue iteration, false if converged
+ */
+
+export function updateFlowStabilized(simulationData) {
     if (simulation.state !== 'running' || !simulationData) {
         return false;
     }
 
     // Store previous iteration values
-    storePreviousIteration();
+    storePreviousIteration(simulationData);
 
-    // Simple flow update - just for testing visualization
-    // This is a placeholder - replace with your actual physics
-    const rows = simulationData.rows;
-    const cols = simulationData.cols;
-    
-    // Initialize arrays if they don't exist
+    //simple flow update to be replaced
+    const { rows, cols, isInside, isBoundary } = simulationData;
+
+    //ensure arrays are intiialized
     if (!simulationData.velocityX || simulationData.velocityX.length === 0) {
-        simulationData.velocityX = Array.from({ length: rows }, () => Array(cols).fill(0));
-        simulationData.velocityY = Array.from({ length: rows }, () => Array(cols).fill(0));
-        simulationData.pressure = Array.from({ length: rows }, () => Array(cols).fill(101325));
-        simulationData.temperature = Array.from({ length: rows }, () => Array(cols).fill(300));
-        simulationData.density = Array.from({ length: rows }, () => Array(cols).fill(1.225));
+        initializeFlow(simulationData);
     }
 
-    // Simple test: gradually increase velocity in flow domain
+    //simple flow update
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-            if (simulationData.isInside[row][col] && !simulationData.isBoundary[row][col]) {
-                // Simple linear velocity profile for testing
+            if (isInside[row][col] && !isBoundary[row][col]) {
                 const progress = col / (cols - 1);
-                simulationData.velocityX[row][col] = 50 + progress * 100; // 50-150 m/s range
-                simulationData.velocityY[row][col] = Math.sin(progress * Math.PI) * 10; // slight y-component
-                simulationData.pressure[row][col] = 101325 * (1 - progress * 0.3); // pressure drop
-                simulationData.temperature[row][col] = 300 - progress * 50; // temperature drop
-                simulationData.density[row][col] = 1.225 * (1 - progress * 0.2); // density drop
+                const timeEffect  = Math.sin(simulation.totalIterations * 0.1) * 0.1;
+
+                simulationData.velocityX[row][col] = 50 + progress * 100 + timeEffect * 20;
+                simulationData.velocityY[row][col] = Math.sin(progress * Math.PI) * 10 + timeEffect * 5;
+                simulationData.pressure[row][col] = 101325 * (1 - progress * 0.3 + timeEffect * 0.1);
+                simulationData.density[row][col] = 1.225 * (1 - progress * 0.2 + timeEffect * 0.05);
+                simulationData.temperature[row][col] = 300 - progress * 50 + timeEffect * 10;
             }
         }
     }
 
-    // Calculate residuals (this will use the simplified arrays)
-    const residuals = calculateResiduals();
+    //calculate residuals
+    const residuals = calculateResiduals(simulationData);
     updateConvergenceHistory(residuals);
-    updateConvergenceDisplay(residuals);
 
-    // For testing, just run a few iterations then "converge"
-    if (simulation.totalIterations > 50) {
-        updateSimulationStatus('converged');
-        return false; // Stop iterating
+    //for testing, run a limited number of iterations then return a "converge"
+    simulation.totalIterations++;
+
+    if(simulation.totalIterations > 100) {
+        console.log('Simulation "Converged" - reached max iterations');
+        return false; //stop iterating
     }
 
-    simulation.totalIterations++;
-    return true; // Continue iterating
+    return true; //continue iterating
+}
+
+//export residual functions for UI
+
+export function getLatestResiduals(simulationData) {
+    return calculateResiduals(simulationData);
+}
+
+export function isConverged(simulationData) {
+    const residuals = calculateResiduals(simulationData);
+    return checkConvergence(residuals);
 }
 
 // //noting that this is a "stabilized" simulation

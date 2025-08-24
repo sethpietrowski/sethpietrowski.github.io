@@ -1,8 +1,9 @@
 import '../styles.css';
-import Banner from '../components/Banner';
+import Banner from '../../components/Banner/banner.jsx';
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { initFEA } from '../FEA/mainFEA';
-import { drawConvergenceChart } from '../FEA/rendering/charts';
+import { initFEA } from '../FEA/core.js';
+import { initializeUI } from '../FEA/ui.js';
+import { setupCanvas, drawConvergenceChart } from '../FEA/rendering.js';
 //import { simulation, totalIterations } from './simulation/state';
 
 export default function FEA() {
@@ -116,12 +117,14 @@ export default function FEA() {
 
             try {
                 console.log('Canvas is ready, initializing FEA...');
-                const ctx = canvasRef.current.getContext('2d');
-                ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
-                simulationData.visualizationMode = visualizationMode;
                 
-                simulationRef.current = initFEA(canvasRef.current, simulationData);
+                setupCanvas(
+                     canvasRef.current,
+                     document.getElementById('colorbar'),
+                     convergenceCanvasRef.current
+                 );
+
+                simulationControlRef.current = initFEA(canvasRef.current, simulationData);
                 
                 if (simulationRef.current && simulationRef.current.setCallbacks) {
                     simulationRef.current.setCallbacks({
@@ -129,11 +132,16 @@ export default function FEA() {
                         onStatsUpdate: setStats,
                         onConvergenceUpdate: setConvergenceData
                     });
-                }
 
-                setIsInitialized(true);
-                setSimulationStatus('Ready');
-                console.log('Simulation initialized successfully');
+                    initializeUI(simulationControlRef.current);
+
+                    setIsInitialized(true);
+                    setSimulationStatus('Ready');
+                    console.log('Simulation initialized successfully');
+                } else {
+                    console.error('Failed to initialize FEA callbacks');
+                    setSimulationStatus('Error');
+                }
             } catch (error) {
                 console.error('Failed to initialize FEA', error);
                 setSimulationStatus('Error');
@@ -158,11 +166,8 @@ export default function FEA() {
             if (timeoutId) {
                 clearTimeout(timeoutId);                
             }    
-            if (animationFrameRef.current) {
-                cancelAnimationFrame(animationFrameRef.current);
-            }
-            if (simulationRef.current && simulationRef.current.cleanup) {
-                simulationRef.current.cleanup();
+            if (simulationControlRef.current?.cleanup) {
+                simulationControlRef.current.cleanup();
             }
         };
     }, []);
