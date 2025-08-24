@@ -2,7 +2,6 @@
 import { createFlowDomain } from "./geometry.js";
 import { initializeFlow, updateFlowStabilized } from "./physics.js";
 import { visualizeFlow, createNozzleGeometry } from "./rendering.js";
-import { setCallbacks } from "./simulation/loop.js";
 import { startAnimationLoop, stopAnimationLoop, updateSimulationStatus } from "./ui.js";
 
 //simulation state management
@@ -66,7 +65,7 @@ export function initFEA(canvas, inputSimulationData) {
         try {
             initializeSimulation(canvas, ctx);
             console.log('=== FEA initialization complete ===');
-        } catch (e) {
+        } catch (error) {
             console.error('Failed to initialize FEA: ', error);
             updateSimulationStatus('error');
         }
@@ -105,13 +104,19 @@ function setupCanvasDimensions(canvas) {
 function initializeFlowArrays() {
     const { rows, cols } = simulationData;
 
-    if (!simulationData.velocityX || simulationData.velocityX.length === 0) {
-        console.log('Initializing velocity arrays...');
-        simulationData.velocityX = Array.from({ length: rows }, () => Array(cols).fill(0));
-        simulationData.velocityY = Array.from({ length: rows }, () => Array(cols).fill(0));
-        simulationData.pressure = Array.from({ length: rows }, () => Array(cols).fill(101325));
-        simulationData.temperature = Array.from({ length: rows }, () => Array(cols).fill(300));
-        simulationData.density = Array.from({ length: rows }, () => Array(cols).fill(1.225));
+    //force re-initialization even if arrays already exist
+    simulationData.velocityX = [];
+    simulationData.velocityY = [];
+    simulationData.pressure = [];
+    simulationData.temperature = [];
+    simulationData.density = [];
+
+    for (let row = 0; row < rows; row++) {
+        simulationData.velocityX[row] = new Array(cols).fill(0);
+        simulationData.velocityY[row] = new Array(cols).fill(0);
+        simulationData.pressure[row] = new Array(cols).fill(101325);
+        simulationData.temperature[row] = new Array(cols).fill(300);
+        simulationData.density[row] = new Array(cols).fill(1.225);
     }
 }
 
@@ -139,7 +144,7 @@ function renderCurrentState(ctx) {
         visualizeFlow(ctx, simulationData, callbacks);
 
         console.log('Initial rendering complete');
-    } catch (e) {
+    } catch (error) {
         console.error('Error rendering initial state: ', error);
     }
 }

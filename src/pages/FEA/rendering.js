@@ -1,5 +1,5 @@
-import { convergenceHistory, convergenceTolerances } from 'core.js';
-import { getWallY } from './feaGeometry.js';
+import { convergenceHistory, convergenceTolerances } from './core.js';
+import { getWallY } from './geometry.js';
 //import { simulation } from './core.js';
 
 export function setupCanvas(canvas, colorbarCanvas, convergenceCanvas) {
@@ -74,6 +74,10 @@ export function createNozzleGeometry(ctx, simulationData) {
 let currentStats = { min: 0, avg: 0, max: 0 };
 
 export function visualizeFlow(ctx, simulationData, callbacks = null) {
+    // Check for undefined rows
+    for (let i = 0; i < Math.min(5, simulationData.velocityX.length); i++) {
+        console.log(`velocityX[${i}]:`, simulationData.velocityX[i] ? `array of ${simulationData.velocityX[i].length}` : 'undefined');
+    }
     const {
         rows, cols, velocityX, velocityY, pressure, temperature, density, 
         isInside, isBoundary, cellWidth, cellHeight, visualizationMode
@@ -88,6 +92,10 @@ export function visualizeFlow(ctx, simulationData, callbacks = null) {
         case 'velocity':
             dataArray = Array.from({ length: rows }, (_, row) =>
                 Array.from({ length: cols }, (_, col) => {
+                    if (!simulationData.velocityX[row]) {
+                        console.error(`Row ${row} is undefined in velocityX`);
+                        return [0, 0, 0, 255]; // Return default color
+                    }
                     const vx = velocityX[row][col] || 0;
                     const vy = velocityY[row][col] || 0;
                     return Math.sqrt(vx * vx + vy * vy);
@@ -147,9 +155,9 @@ export function visualizeFlow(ctx, simulationData, callbacks = null) {
 }
 
 function updateStatsDisplay(minVal, maxVal, avgVal) {
-    const minLabel = document.getElementById('min-label');
-    const avgLabel = document.getElementById('avg-label');    
-    const maxLabel = document.getElementById('max-label');
+    const minElement = document.getElementById('min-label');
+    const avgElement = document.getElementById('avg-label');    
+    const maxElement = document.getElementById('max-label');
     
     if (minElement) minElement.textContent = minVal.toFixed(3);
     if (avgElement) avgElement.textContent = avgVal.toFixed(3);

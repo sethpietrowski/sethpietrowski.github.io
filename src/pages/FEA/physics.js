@@ -14,7 +14,7 @@
 // import { getLocalRadius, getWallY } from '../geometry/nozzleGeometry.js';
 import { simulation, convergenceHistory, convergenceTolerances } from './core.js';
 
-//flow intiialization
+//flow initialization
 export function initializeFlow(simulationData) {
     const { rows, cols, isInside, isBoundary } = simulationData;
 

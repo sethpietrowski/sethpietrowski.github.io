@@ -28,6 +28,12 @@ export function updateSimulationStatus(status) {
         'error': { text: 'Error', class: 'status-indicator status-error', startDisabled: true, pauseDisabled: true }
     };
 
+    const config = statusMap[status.toLowerCase()];
+    if(!config) {
+        console.warm('Unknown status:', status);
+        return;
+    }
+
     statusElement.textContent = config.text;
     indicatorElement.className = config.class;
     startBtn.disabled = config.startDisabled;

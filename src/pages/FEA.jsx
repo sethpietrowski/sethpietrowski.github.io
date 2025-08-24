@@ -1,14 +1,14 @@
 import '../styles.css';
-import Banner from '../components/Banner';
+import Banner from '../components/Banner/banner.jsx';
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { initFEA } from '../FEA/core.js';
-import { initializeUI } from '../FEA/ui.js';
-import { setupCanvas, drawConvergenceChart } from '../FEA/rendering.js';
-//import { velocityX } from './FEA/simulation/state.js';
+import { initFEA } from './FEA/core.js';
+import { initializeUI } from './FEA/ui.js';
+import { setupCanvas, drawConvergenceChart } from './FEA/rendering.js';
 
 export default function FEA() {
     const convergenceCanvasRef = useRef(null);
     const canvasRef = useRef(null);
+    const colorbarRef = useRef(null);
     const [simulationStatus, setSimulationStatus] = useState('Initializing');
     const [isRunning, setIsRunning] = useState(false);
     const [visualizationMode, setVisualizationMode] = useState('velocity');
@@ -24,6 +24,17 @@ export default function FEA() {
     const simulationRef = useRef(null);
     const simulationControlRef = useRef(null);
     const [isInitialized, setIsInitialized] = useState(false);
+    const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 400 });
+    
+    const getStatusClass = (status) => {
+    switch (status.toLowerCase()) {
+        case 'running': return 'running';
+        case 'paused': return 'paused';
+        case 'ready': return 'ready';
+        case 'error': return 'error';
+        default: return 'unknown';
+    }
+    };
 
     const simulationData = useRef({
         controlPoints: {
@@ -54,21 +65,56 @@ export default function FEA() {
         // wallAngleBottom: [],
     });
 
+    //responsive canvas sizing
+    const updateCanvasSize = useCallback(() => {
+        const container = canvasRef.current?.parentElement;
+        if (container) {
+            const containerWidth = container.clientWidth - 120; // for colorbar
+            const maxWidth = 800;
+            const maxHeight = 400;
+
+            let width = Math.min(containerWidth, maxWidth);
+            let height = (width / maxWidth) * maxHeight;
+
+            //ensure minimum size
+            if (width < 600) {
+                width = 600;
+                height = 300;
+            }
+
+            setCanvasDimensions({ width, height });
+        }
+    }, []);
+
+    // Update canvas dimensions on window resize
+    useEffect(() => {
+        updateCanvasSize();
+        window.addEventListener('resize', updateCanvasSize);
+        return () => window.removeEventListener('resize', updateCanvasSize);
+    }, [updateCanvasSize]);
+
+    // Update canvas actual size when dimensions change
+    useEffect(() => {
+        if (canvasRef.current) {
+            canvasRef.current.width = canvasDimensions.width;
+            canvasRef.current.height = canvasDimensions.height;
+            canvasRef.current.style.width = `${canvasDimensions.width}px`;
+            canvasRef.current.style.height = `${canvasDimensions.height}px`;
+        }
+    }, [canvasDimensions]);
+
     //update visualization mode in simulation data when changed
     useEffect(() => {
         if (isInitialized && simulationData.current) {
             simulationData.current.visualizationMode = visualizationMode;
-            if (simulationControlRef.current?.updateVisualization) {
-                simulationControlRef.current.updateVisualization();
-            }
         }
     }, [visualizationMode, isInitialized]);
 
     const handleStart = useCallback(() => {
-        if (simulationControlRef.current?.pause) {
-            simulationControlRef.current.pause();
-            setIsRunning(false);
-            setSimulationStatus('Paused');
+        if (simulationControlRef.current?.start) {
+            simulationControlRef.current.start();
+            setIsRunning(true);
+            setSimulationStatus('Running');
         }
     }, []);
 
@@ -96,7 +142,7 @@ export default function FEA() {
         }
     }, []);
 
-    const handleToleranceChange = useCallback((e) => {
+    const handleToleranceChange = useCallback((type, value) => {
         if (simulationControlRef.current?.setTolerance) {
             simulationControlRef.current.setTolerance(type, parseFloat(value));
         }
@@ -126,6 +172,8 @@ export default function FEA() {
                     document.getElementById('colorbar'),
                     convergenceCanvasRef.current
                 );
+
+                simulationData.current.canvasHeight = canvasDimensions.height;
 
                 simulationControlRef.current = initFEA(canvasRef.current, simulationData);
     
@@ -176,7 +224,7 @@ export default function FEA() {
             }
         }
     
-    }, []);
+    }, [canvasDimensions]);
 
     const handleVisualizationModeChange = useCallback((e) => {
         setVisualizationMode(e.target.value);
@@ -191,7 +239,16 @@ export default function FEA() {
             <div className="main-layout">
                 <div className="left-section">
                     <div className="canvas-area">
-                        <canvas ref={canvasRef} id="fea-canvas" width="1000" height="500" />
+                        <canvas 
+                            ref={canvasRef} 
+                            id="fea-canvas" 
+                            width="1000" 
+                            height="500"
+                            style={{
+                                width: `${canvasDimensions.width}px`,
+                                height: `${canvasDimensions.height}px`
+                            }} 
+                        />
                         <div className="colorbar-container">
                             <div id="colorbar-title" className="colorbar-labels">
                                 {visualizationMode.charAt(0).toUpperCase() + visualizationMode.slice(1)}
@@ -199,7 +256,12 @@ export default function FEA() {
                             <div id="max-label" className="colorbar-labels">
                                 {stats.max.toFixed(3)}
                             </div>
-                            <canvas id="colorbar" width="30" height="400"></canvas>
+                            <canvas 
+                                ref={colorbarRef}
+                                id="colorbar" 
+                                width="30" 
+                                height="300"
+                            />
                             <div id="mid-label" className="colorbar-labels" style={{ position: 'absolute', marginTop: '150px' }}>
                                 {stats.avg.toFixed(3)}
                             </div>
@@ -216,7 +278,7 @@ export default function FEA() {
                                 name="vizMode" 
                                 value="pressure"
                                 checked={visualizationMode === 'pressure'}
-                                onChange={handelVisualizationModeChange} 
+                                onChange={handleVisualizationModeChange} 
                             />
                             Pressure
                         </label>
@@ -257,10 +319,10 @@ export default function FEA() {
                             Min: <span id="min-value" className="stat-value">{stats.min.toFixed(2)}</span>
                         </div>
                         <div className="stat-item">
-                            Avg: <span id="avg-value" className="stat-value">{stats.min.toFixed(2)}</span>
+                            Avg: <span id="avg-value" className="stat-value">{stats.avg.toFixed(2)}</span>
                         </div>
                         <div className="stat-item">
-                            Max: <span id="max-value" className="stat-value">{stats.min.toFixed(2)}</span>
+                            Max: <span id="max-value" className="stat-value">{stats.max.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
@@ -269,34 +331,44 @@ export default function FEA() {
                     <div className="convergence-info">
                         <h3>Simulation Status</h3>
                         <div className="convergence-metric">
-                            <span 
-                                className={`status-indicator ${simulationStatus.toLowerCase()}`} 
-                                id="status-indicator"
-                            ></span>
-                            Status: <span id="simulation-status">{simulationStatus}</span>
+                            <span>
+                                <span  
+                                    className={`status-indicator ${getStatusClass(simulationStatus)}`} 
+                                    id="status-indicator"
+                                ></span>
+                            Status: 
+                            </span>
+                            <span className="convergence-value" id="simulation-status">
+                                {simulationStatus}
+                            </span>
                         </div>
-                        <div className="convergence-metric">
-                            Time Step: <span className="convergence-value" id="time-step">
+                         <div className="convergence-metric">
+                            <span>Time Step:</span>
+                            <span className="convergence-value" id="time-step">
                                 {convergenceData.timeStep}
                             </span>
                         </div>
                         <div className="convergence-metric">
-                            Iterations: <span className="convergence-value" id="total-iterations">
+                            <span>Iterations:</span>
+                            <span className="convergence-value" id="total-iterations">
                                 {convergenceData.totalIterations}
                             </span>
                         </div>
                         <div className="convergence-metric">
-                            Velocity Residual: <span className="convergence-value" id="velocity-residual">
+                            <span>Velocity Residual:</span>
+                            <span className="convergence-value" id="velocity-residual">
                                 {convergenceData.velocityResidual}
                             </span>
                         </div>
                         <div className="convergence-metric">
-                            Pressure Residual: <span className="convergence-value" id="pressure-residual">
+                            <span>Pressure Residual:</span>
+                            <span className="convergence-value" id="pressure-residual">
                                 {convergenceData.pressureResidual}
                             </span>
                         </div>
                         <div className="convergence-metric">
-                            Mass Residual: <span className="convergence-value" id="mass-residual">
+                            <span>Mass Residual:</span>
+                            <span className="convergence-value" id="mass-residual">
                                 {convergenceData.massResidual}
                             </span>
                         </div>
@@ -304,32 +376,34 @@ export default function FEA() {
 
                     <div className="convergence-controls">
                         <h3>Controls</h3>
-                        <button 
-                            className="control-button" 
-                            id="start-btn"
-                            onClick={handleStart}
-                            disabled={isRunning}
-                        >
-                            Start
-                        </button>
-                        <button 
-                            className="control-button" 
-                            id="pause-btn" 
-                            onClick={handlePause}
-                            disabled={!isRunning}
-                        >
-                            Pause
-                        </button>
-                        <button 
-                            className="control-button" 
-                            id="reset-btn"
-                            onClick={handleReset}
-                        >
-                            Reset
-                        </button>
+                        <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+                            <button 
+                                className="control-button" 
+                                id="start-btn"
+                                onClick={handleStart}
+                                disabled={isRunning}
+                            >
+                                Start
+                            </button>
+                            <button 
+                                className="control-button" 
+                                id="pause-btn" 
+                                onClick={handlePause}
+                                disabled={!isRunning}
+                            >
+                                Pause
+                            </button>
+                            <button 
+                                className="control-button" 
+                                id="reset-btn"
+                                onClick={handleReset}
+                            >
+                                Reset
+                            </button>
+                        </div>
                         <hr />
                         <div style={{ margin: '10px 0' }}>
-                            <label>Velocity Tolerance:</label><br />
+                            <label htmlFor="vel-tolerance">Velocity Tolerance:</label>
                             <input 
                                 type="number" 
                                 className="tolerance-input" 
@@ -341,7 +415,7 @@ export default function FEA() {
                             /> 
                         </div>
                         <div style={{ margin: '10px 0' }}>
-                            <label>Pressure Tolerance:</label><br />
+                            <label htmlFor="press-tolerance">Pressure Tolerance:</label>
                             <input 
                                 type="number" 
                                 className="tolerance-input" 
@@ -353,7 +427,7 @@ export default function FEA() {
                             /> 
                         </div>
                         <div style={{ margin: '10px 0' }}>
-                            <label>Mass Tolerance:</label><br />
+                            <label htmlFor="mass-tolerance">Mass Tolerance:</label>
                             <input 
                                 type="number" 
                                 className="tolerance-input" 

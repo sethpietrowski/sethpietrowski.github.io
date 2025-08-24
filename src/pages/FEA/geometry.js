@@ -37,8 +37,8 @@ export function getWallY(x, top, controlPoints, scaleY, canvasHeight) {
     const scaledY = y * scaleY;
 
     return top 
-        ? canvas.height / 2 - scaledY 
-        : canvas.height / 2 + scaledY;
+        ? canvasHeight / 2 - scaledY 
+        : canvasHeight / 2 + scaledY;
 }
 
 /**
@@ -104,8 +104,8 @@ export function createFlowDomain(simulationData) {
     
     console.log('Creating flow domain with dimensions:', cols, 'x', rows);
 
-    simulationData.isInside = Array.from({ length: ny }, () => Array(cols).fill(false));
-    simulationData.isBoundary = Array.from({ length: ny }, () => Array(cols).fill(false));
+    simulationData.isInside = Array.from({ length: rows }, () => Array(cols).fill(false));
+    simulationData.isBoundary = Array.from({ length: rows }, () => Array(cols).fill(false));
 
     const wallAngles = calculateWallAngles(cols, cellWidth, controlPoints, scaleY, canvasHeight);
     simulationData.wallAngleTop = wallAngles.top;
