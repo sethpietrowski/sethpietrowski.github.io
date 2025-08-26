@@ -6,7 +6,7 @@ export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/sethpietrowski.github.io' : '/',
   plugins: [react()],
   build: {
-    outDir: 'dist',
+    outDir: 'docs',
     sourcemap: true,
   },
   server: {
