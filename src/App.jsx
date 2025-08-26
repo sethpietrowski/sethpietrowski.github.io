@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import './App.css';
+import Banner from './components/Banner/banner';
 
-//lazy load components improves performance
 const About = lazy(() => import('./pages/About'));
 const FEA = lazy(() => import('./pages/FEA'));
 const Sudoku = lazy(() => import('./pages/Sudoku'));
@@ -76,10 +76,10 @@ class ErrorBoundary extends Component {
 export default function App() {
   return (
     <ErrorBoundary>
-      <Router basename={process.env.NODE_ENV === 'production' ? '/sethpietrowski.github.io/' : ''}>
+      <Router basename={process.env.NODE_ENV === 'production' ? '/sethpietrowski.github.io' : ''}>
         <div className="App">
           <Suspense fallback={<LoadingSpinner />}>
-            {/* <Banner /> */}
+            <Banner />
             <Routes>
               <Route path="/" element={<About />} />
               <Route path="/about" element={<Navigate to="/" replace />} />
