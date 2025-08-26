@@ -1,0 +1,1 @@
+{"version":3,"file":"ThreeDGame-DWDzyL6h.js","sources":["../../src/pages/ThreeDGame.jsx"],"sourcesContent":["export default function ThreeDGame() {\r\n  return <div>You have lost game privelages.</div>;\r\n}"],"names":["ThreeDGame","jsx"],"mappings":"wCAAA,SAAwBA,GAAa,CACnC,OAAOC,EAAAA,IAAC,OAAI,SAAA,gCAAA,CAA8B,CAC5C"}
