@@ -76,7 +76,8 @@ class ErrorBoundary extends Component {
 export default function App() {
   return (
     <ErrorBoundary>
-      <Router basename={process.env.NODE_ENV === 'production' ? '/sethpietrowski.github.io' : ''}>
+      {/* <Router basename={process.env.NODE_ENV === 'production' ? '/sethpietrowski.github.io' : ''}> */}
+      <Router basename={''}>
         <div className="App">
           <Suspense fallback={<LoadingSpinner />}>
             <Banner />
