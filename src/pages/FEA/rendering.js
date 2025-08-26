@@ -75,9 +75,9 @@ let currentStats = { min: 0, avg: 0, max: 0 };
 
 export function visualizeFlow(ctx, simulationData, callbacks = null) {
     // Check for undefined rows
-    for (let i = 0; i < Math.min(5, simulationData.velocityX.length); i++) {
-        console.log(`velocityX[${i}]:`, simulationData.velocityX[i] ? `array of ${simulationData.velocityX[i].length}` : 'undefined');
-    }
+    // for (let i = 0; i < Math.min(5, simulationData.velocityX.length); i++) {
+    //     console.log(`velocityX[${i}]:`, simulationData.velocityX[i] ? `array of ${simulationData.velocityX[i].length}` : 'undefined');
+    // }
     const {
         rows, cols, velocityX, velocityY, pressure, temperature, density, 
         isInside, isBoundary, cellWidth, cellHeight, visualizationMode
