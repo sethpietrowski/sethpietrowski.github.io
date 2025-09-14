@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "prebuild": "node pages/fetchData.js",
+    "prebuild": "node src/pages/fetchData.js",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",

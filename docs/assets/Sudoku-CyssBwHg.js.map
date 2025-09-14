@@ -1,1 +1,0 @@
-{"version":3,"file":"Sudoku-CyssBwHg.js","sources":["../../src/pages/Sudoku.jsx"],"sourcesContent":["export default function Sudoku() {\r\n  return <div>You have lost Sudoku privelages.</div>;\r\n}"],"names":["Sudoku","jsx"],"mappings":"wCAAA,SAAwBA,GAAS,CAC/B,OAAOC,EAAAA,IAAC,OAAI,SAAA,kCAAA,CAAgC,CAC9C"}

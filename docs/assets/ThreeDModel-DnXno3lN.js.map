@@ -1,0 +1,1 @@
+{"version":3,"file":"ThreeDModel-DnXno3lN.js","sources":["../../src/pages/ThreeDModel.jsx"],"sourcesContent":["export default function ThreeDModel() {\r\n  return <div>You have lost CAD priveleges.</div>;\r\n}"],"names":["ThreeDModel","jsx"],"mappings":"wCAAA,SAAwBA,GAAc,CACpC,OAAOC,EAAAA,IAAC,OAAI,SAAA,+BAAA,CAA6B,CAC3C"}

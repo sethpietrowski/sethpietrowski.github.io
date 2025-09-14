@@ -1,1 +1,0 @@
-{"version":3,"file":"ThreeDModel-iKSebd5n.js","sources":["../../src/pages/ThreeDModel.jsx"],"sourcesContent":["export default function ThreeDModel() {\r\n  return <div>You have lost CAD privelages.</div>;\r\n}"],"names":["ThreeDModel","jsx"],"mappings":"wCAAA,SAAwBA,GAAc,CACpC,OAAOC,EAAAA,IAAC,OAAI,SAAA,+BAAA,CAA6B,CAC3C"}
