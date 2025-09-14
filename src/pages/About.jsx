@@ -83,6 +83,26 @@ export default function About() {
                     <h3>⚡ FEA Nozzle Simulator</h3>
                     <p>Finite Element Analysis visualization of fluid flow through a rocket nozzle.</p>
                 </div>
+                <div 
+                    className="project-card"
+                    onClick={() => handleProjectClick("/read-chinese")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleProjectClick("/read-chinese")}
+                >
+                    <h3>📖 Chinese Learning Reader</h3>
+                    <p>Learn Chinese by reading simple stories with sentence- and word-wise English translations</p>
+                </div>
+                <div 
+                    className="project-card"
+                    onClick={() => handleProjectClick("/demographic-data-viewer")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && handleProjectClick("/demographic-data-viewer")}
+                >
+                    <h3>🗺️ US Demogrpahic Data Viewer</h3>
+                    <p>View multiple demographic statistics for each US state</p>
+                </div>
             </div>
 
             <section className="cv-section">

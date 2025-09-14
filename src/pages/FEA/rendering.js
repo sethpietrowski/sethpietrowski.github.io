@@ -1,6 +1,6 @@
+import { all, color } from 'three/tsl';
 import { convergenceHistory, convergenceTolerances } from './core.js';
 import { getWallY } from './geometry.js';
-//import { simulation } from './core.js';
 
 export function setupCanvas(canvas, colorbarCanvas, convergenceCanvas) {
     const ctx = canvas.getContext('2d');
@@ -33,7 +33,7 @@ export function createNozzleGeometry(ctx, simulationData) {
     ctx.lineWidth = 2;
     ctx.fillStyle = 'rgba(100,100,100,0.3)';
 
-    const resolution = 100; //mnumber of points to draw smooth curves
+    const resolution = 200; //mnumber of points to draw smooth curves
 
     //draw top wall
     ctx.beginPath();
@@ -59,9 +59,9 @@ export function createNozzleGeometry(ctx, simulationData) {
     ctx.fill();
     ctx.stroke();
 
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([5,5]);
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10,5]);
     ctx.beginPath();
     ctx.moveTo(0, canvasHeight / 2);
     ctx.lineTo(controlPoints.exit_x, canvasHeight / 2);
@@ -74,10 +74,6 @@ export function createNozzleGeometry(ctx, simulationData) {
 let currentStats = { min: 0, avg: 0, max: 0 };
 
 export function visualizeFlow(ctx, simulationData, callbacks = null) {
-    // Check for undefined rows
-    // for (let i = 0; i < Math.min(5, simulationData.velocityX.length); i++) {
-    //     console.log(`velocityX[${i}]:`, simulationData.velocityX[i] ? `array of ${simulationData.velocityX[i].length}` : 'undefined');
-    // }
     const {
         rows, cols, velocityX, velocityY, pressure, temperature, density, 
         isInside, isBoundary, cellWidth, cellHeight, visualizationMode
@@ -92,10 +88,8 @@ export function visualizeFlow(ctx, simulationData, callbacks = null) {
         case 'velocity':
             dataArray = Array.from({ length: rows }, (_, row) =>
                 Array.from({ length: cols }, (_, col) => {
-                    if (!simulationData.velocityX[row]) {
-                        console.error(`Row ${row} is undefined in velocityX`);
-                        return [0, 0, 0, 255]; // Return default color
-                    }
+                    if (!velocityX[row]) return 0;
+
                     const vx = velocityX[row][col] || 0;
                     const vy = velocityY[row][col] || 0;
                     return Math.sqrt(vx * vx + vy * vy);
@@ -110,7 +104,7 @@ export function visualizeFlow(ctx, simulationData, callbacks = null) {
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
             if (isInside[row][col] && !isBoundary[row][col]) {
-                const val = dataArray[row][col];
+                const val = Array.isArray(dataArray[row][col]) ? dataArray[row][col] : 0;
                 if (!isNaN(val) && isFinite(val)) {
                     flatData.push(val);
                 }
@@ -125,8 +119,6 @@ export function visualizeFlow(ctx, simulationData, callbacks = null) {
     const avgVal = flatData.reduce((a, b) => a + b, 0) / flatData.length;
 
     currentStats = { min: minVal, avg: avgVal, max: maxVal };
-
-    updateStatsDisplay(minVal, maxVal, avgVal);
 
     if (callbacks?.onStatsUpdate) {
         callbacks.onStatsUpdate({ 
@@ -144,7 +136,7 @@ export function visualizeFlow(ctx, simulationData, callbacks = null) {
         for (let col = 0; col < cols; col++) {
             if (!isInside[row][col]) continue;
 
-            const value  =dataArray[row][col];
+            const value = Array.isArray(dataArray[row][col]) ? dataArray[row][col] : 0;
             const color = getColorFromValue(value, minVal, maxVal, visualizationMode);
             ctx.fillStyle = color;
             ctx.fillRect(col * cellWidth, row * cellHeight, cellWidth, cellHeight);
@@ -154,15 +146,15 @@ export function visualizeFlow(ctx, simulationData, callbacks = null) {
     createColorbar(minVal, maxVal, visualizationMode);
 }
 
-function updateStatsDisplay(minVal, maxVal, avgVal) {
-    const minElement = document.getElementById('min-label');
-    const avgElement = document.getElementById('avg-label');    
-    const maxElement = document.getElementById('max-label');
+// function updateStatsDisplay(minVal, maxVal, avgVal) {
+//     const minElement = document.getElementById('min-label');
+//     const avgElement = document.getElementById('avg-label');    
+//     const maxElement = document.getElementById('max-label');
     
-    if (minElement) minElement.textContent = minVal.toFixed(3);
-    if (avgElement) avgElement.textContent = avgVal.toFixed(3);
-    if (maxElement) maxElement.textContent = maxVal.toFixed(3);
-}
+//     if (minElement) minElement.textContent = minVal.toFixed(3);
+//     if (avgElement) avgElement.textContent = avgVal.toFixed(3);
+//     if (maxElement) maxElement.textContent = maxVal.toFixed(3);
+// }
 
 //color mapping
 
@@ -237,19 +229,19 @@ export function createColorbar(minVal, maxVal, mode) {
     colorbarCtx.strokeRect(0, 0, width, height);
 
     const maxLabel = document.getElementById('max-label');
-    const midLabel = document.getElementById('mid-label');
+    // const midLabel = document.getElementById('mid-label');
     const minLabel = document.getElementById('min-label');
     const titleLabel = document.getElementById('colorbar-title');
 
     if (maxLabel) maxLabel.textContent = maxVal.toFixed(3);
-    if (midLabel) midLabel.textContent = ((maxVal + minVal) / 2).toFixed(3);
+    // if (midLabel) midLabel.textContent = ((maxVal + minVal) / 2).toFixed(3);
     if (minLabel) minLabel.textContent = minVal.toFixed(3);
 
     const titles = {
-        'velocity': 'Velocity',
-        'pressure': 'Pressure',
-        'temperature': 'Temperature',
-        'density': 'Density'
+        'velocity': 'Velocity (m/s)',
+        'pressure': 'Pressure (Pa)',
+        'temperature': 'Temperature (K)',
+        'density': 'Density (kg/m³)'
     };
     if (titleLabel) titleLabel.textContent = titles[mode] || 'Value';
 }
@@ -257,9 +249,17 @@ export function createColorbar(minVal, maxVal, mode) {
 //convergence chart
 
 export function drawConvergenceChart(canvas) {
-    if (!canvas) return; // safety check
+    if (!canvas) {  // safety check
+        console.warn("Convergence canvas not found");
+        return;
+    }
 
     const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.warn("Could not get convergence canvas context");
+        return;
+    }
+
     const width = canvas.width;
     const height = canvas.height;
 
@@ -267,32 +267,55 @@ export function drawConvergenceChart(canvas) {
     ctx.fillStyle = 'rgba(0,0,0,0.8)';
     ctx.fillRect(0, 0, width, height);
 
-    if (convergenceHistory.velocity.length < 2) return;
+    if (!convergenceHistory ||convergenceHistory.velocity.length < 2) {
+        //Draw "no data" message
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('No convergence data yet', width / 2, height / 2);
+    }
 
     //find range for logarithmic scale
     const allValues = [
-        ...convergenceHistory.velocity, 
-        ...convergenceHistory.pressure, 
-        ...convergenceHistory.mass
+        ...convergenceHistory.velocity.filter(v => isFinite(v) && v > 0), 
+        ...convergenceHistory.pressure.filter(v => isFinite(v) && v > 0), 
+        ...convergenceHistory.mass.filter(v => isFinite(v) && v > 0)
     ];
+
+    if (allValues.length === 0) {
+        ctx.fillstyle = 'rgba(255,255,255,0.8)';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Invalid convergence data', width / 2, height / 2);
+        return;
+    }
     const minVal = Math.max(1e-12, Math.min(...allValues));
-    const maxVal = Math.max(minVal * 1.01, Math.max(...allValues));
+    const maxVal = Math.max(minVal * 10, Math.max(...allValues));
 
     const logMin = Math.log10(minVal);
     const logMax = Math.log10(maxVal);
     const logRange = logMax - logMin;
 
-    if (logRange <= 0) return;
+    if (logRange <= 0) {
+        ctx.fillstyle = 'rgba(255,255,255,0.8)';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Insufficient data range', width / 2, height / 2);
+        return;
+    }
 
     // Draw Grid
     drawChartGrid(ctx, width, height, logMin, logMax, logRange);
     drawConvergenceLines(ctx, width, height, logMin, logRange);
     drawConvergenceLabels(ctx, width, height, logMin, logRange);
+    drawChartLegend(ctx, width, height);
 }
 
 function drawChartGrid(ctx, width, height, logMin, logMax, logRange) {
     ctx.strokeStyle = 'rgba(255,255,255,0.2)';
     ctx.lineWidth = 1;
+    ctx.font = '10px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
 
     //horizontal grid lines (power of 10)
     for (let power = Math.floor(logMin); power <= Math.ceil(logMax); power++) {
@@ -303,22 +326,27 @@ function drawChartGrid(ctx, width, height, logMin, logMax, logRange) {
         ctx.stroke();
 
         //labels
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.font = '10px Arial';
+        ctx.textAlign = 'left';
         ctx.fillText(`1e${power}`, 5, y - 2);
     }
 
     //Vertical grid lines
-    const stepSize = Math.max(1, Math.floor(convergenceHistory.velocity.length / 5));
+    const dataLength = convergenceHistory.velocity.length;
+    if (dataLength > 1) {
+        const stepSize = Math.max(1, Math.floor(dataLength / 5));
+        for (let i = 0; i < dataLength; i += stepSize) {
+            const x = (i / (dataLength - 1)) * width;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
 
-    for (let i = 0; i < convergenceHistory.velocity.length; i += stepSize) {
-        const x = convergenceHistory.velocity.length > 1 
-            ? (i / (convergenceHistory.velocity.length - 1)) * width
-            : 0;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
+            //X-axis labels
+            if (i % (stepSize * 2) === 0) {
+                ctx.textAlign = 'center';
+                ctx.fillText(i.toString(), x, height - 5);
+            }
+        }
     }
 }
 
@@ -336,19 +364,26 @@ function drawConvergenceLines(ctx, width, height, logMin, logRange) {
         ctx.lineWidth = 2;
         ctx.beginPath();
 
+        let pathStarted = false;
         for (let i = 0; i < dataset.data.length; i++) {
-            const x = (i / (dataset.data.length - 1)) * width;
-            const logValue = Math.log10(Math.max(1e-12, dataset.data[i]));
+            const value = dataset.data[i];
+            if (!isFinite(value) || value <= 0) continue;
+
+            const x = dataset.data.length > 1 ? (i / (dataset.data.length - 1)) * width : width / 2;
+            const logValue = Math.log10(Math.max(1e-12, value));
             const y = height - ((logValue - logMin) / logRange) * height;
 
-            if (i === 0) {
+            if (!pathStarted) {
                 ctx.moveTo(x, y);
+                pathStarted = true;
             } else {
                 ctx.lineTo(x, y);
             }
         }
 
-        ctx.stroke();
+        if (pathStarted) {
+            ctx.stroke();
+        }
     });
 }
 
@@ -358,15 +393,20 @@ function drawToleranceLines(ctx, width, height, logMin, logRange) {
     ctx.setLineDash([5, 5]);
 
     const tolerances = [
-        convergenceTolerances.velocity,
-        convergenceTolerances.pressure, 
-        convergenceTolerances.mass
+        { value: convergenceTolerances.velocity, color: 'blue' },
+        { value: convergenceTolerances.pressure, color: 'green' }, 
+        { value: convergenceTolerances.mass, color: 'red' }
     ];
 
     tolerances.forEach((tol) => {
-        if (tol <= 0) return;
+        if (tol.value <= 0) return;
+
         const logTol = Math.log10(tol);
+        if (logTol < logMin || logTol > logMin + logRange) return;
+
         const y = height - ((logTol - logMin) / logRange) * height;
+
+        ctx.strokeStyle = tol.color;
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
@@ -374,6 +414,27 @@ function drawToleranceLines(ctx, width, height, logMin, logRange) {
     });
 
     ctx.setLineDash([]);
+}
+
+function drawChartLegend(ctx, width, height) {
+    const legendItems = [
+        { color: 'blue', label: 'Velocity' },
+        { color: 'green', label: 'Pressure' },
+        { color: 'red', label: 'Mass' }
+    ];
+
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'left';
+
+    legendItems.forEach((item, index) => {
+        const x = width - 80;
+        const y = 20 + index * 20;
+
+        ctx.fillStyle = item.color;
+        ctx.fillRect(x, y -  8, 12, 12);
+        ctx.fillStyle = 'white';
+        ctx.fillText(item.label, x + 16, y + 2);
+    });
 }
 
 //export current stats

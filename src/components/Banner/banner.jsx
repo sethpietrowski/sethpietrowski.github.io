@@ -11,6 +11,8 @@ export default function Banner() {
                 <NavLink to="/3Dmodel">3D Model</NavLink>
                 <NavLink to="/3Dgame">3D Game</NavLink>
                 <NavLink to="/fea">FEA Nozzle</NavLink>
+                <NavLink to="/read-chinese">Read Chinese</NavLink>
+                <NavLink to="/demographic-data-viewer">US Demographics</NavLink>
             </div>
         </div>
     );

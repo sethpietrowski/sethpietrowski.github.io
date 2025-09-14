@@ -68,7 +68,11 @@ export function updateConvergenceDisplay(residuals) {
 
     const convergenceCanvas = document.getElementById('convergence-canvas');
     if (convergenceCanvas) {
-        drawConvergenceChart(convergenceCanvas);
+        try {
+            drawConvergenceChart(convergenceCanvas);
+        } catch (error) {
+            console.error('Error drawing convergence chart:', error);
+        }
     }
 }
 
@@ -132,7 +136,8 @@ export function startAnimationLoop(canvas, simulationData, callbacks) {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (simulation.timeStep % 2 === 0) {
+        //update physics every frame
+        if (simulation.timeStep % 1 === 0) {
             updateTolerances();
 
             let shouldContinue;
@@ -145,12 +150,14 @@ export function startAnimationLoop(canvas, simulationData, callbacks) {
                 return;
             }
 
-            //update convergence display
-            try {
-                const residuals = getLatestResiduals(simulationData);
-                updateConvergenceDisplay(residuals);
-            } catch (error) {
-                console.error('Error updating convergence display: ', error);
+            //update convergence display every 5 frames
+            if (simulation.timeStep % 5 === 0) {
+                try {
+                    const residuals = getLatestResiduals(simulationData);
+                    updateConvergenceDisplay(residuals);
+                } catch (error) {
+                    console.error('Error updating convergence display: ', error);
+                }
             }
 
             if (!shouldContinue) {

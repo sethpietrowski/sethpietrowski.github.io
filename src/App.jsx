@@ -1,13 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
-import './App.css';
 import Banner from './components/Banner/banner';
+import './App.css';
 
 const About = lazy(() => import('./pages/About'));
 const FEA = lazy(() => import('./pages/FEA'));
 const Sudoku = lazy(() => import('./pages/Sudoku'));
 const ThreeDGame = lazy(() => import('./pages/ThreeDGame'));
 const ThreeDModel = lazy(() => import('./pages/ThreeDModel'));
+const LanguageApp = lazy(() => import('./pages/LanguageApp'));
+const PopDemographics = lazy(() => import('./pages/PopDemographics'));
 
 const LoadingSpinner = () => (
   <div style={{
@@ -88,6 +90,8 @@ export default function App() {
               <Route path="/sudoku" element={<Sudoku />} />
               <Route path="/3d-game" element={<ThreeDGame />} />
               <Route path="/3d-model" element={<ThreeDModel />} />
+              <Route path="/read-chinese" element={<LanguageApp />} />
+              <Route path="/demographic-data-viewer" element={<PopDemographics />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

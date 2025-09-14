@@ -1,4 +1,3 @@
-//import { update } from "three/examples/jsm/libs/tween.module.js";
 import { createFlowDomain } from "./geometry.js";
 import { initializeFlow, updateFlowStabilized } from "./physics.js";
 import { visualizeFlow, createNozzleGeometry } from "./rendering.js";
@@ -56,9 +55,9 @@ export function initFEA(canvas, inputSimulationData) {
     console.log('Simulation Data: ', simulationData);
 
     //clear canvas and show test
-    ctx.fillStyle = 'red';
-    ctx.fillRect(10, 10, 50, 50);
-    console.log('Red test square drawn at (10,10)');
+    // ctx.fillStyle = 'red';
+    // ctx.fillRect(10, 10, 50, 50);
+    // console.log('Red test square drawn at (10,10)');
 
     //initialize after a short delay
     setTimeout(() => {
@@ -87,7 +86,7 @@ function initializeSimulation(canvas, ctx) {
     
     initializeFlowArrays();
 
-    createTestData();
+    initializeFlow(simulationData); 
 
     renderCurrentState(ctx);
 
@@ -97,6 +96,25 @@ function initializeSimulation(canvas, ctx) {
 function setupCanvasDimensions(canvas) {
     simulationData.canvasWidth = canvas.width;
     simulationData.canvasHeight = canvas.height;
+
+    const maxNozzleWidth = simulationData.cointrolPoints.exit_x;
+    const scaleX = (canvas.width * 0.9) / maxNozzleWidth;
+
+    //scale control points with Canvas
+    Object.keys(simulationData.controlPoints).forEach(key => {
+        if (key.includes('_x' || key === 'exit_x')) {
+            simulationData.controlPoints[key] *= scaleX;
+        }
+    });
+
+    //adjust scaleY to fit canvas height
+    const maxRadius = Math.max(
+        simulationData.controlPoints.inlet_radius,
+        simulationData.controlPoints.exit_radius,
+        simulationData.controlPoints.throat_radius
+    );
+    simulationData.scaleY = (canvas.height * 0.35) / maxRadius;
+
     simulationData.cellWidth = simulationData.canvasWidth / simulationData.cols;
     simulationData.cellHeight = simulationData.canvasHeight / simulationData.rows;
 }
@@ -120,22 +138,22 @@ function initializeFlowArrays() {
     }
 }
 
-function createTestData() {
-    const { rows, cols, isInside } = simulationData;
+// function createTestData() {
+//     const { rows, cols, isInside } = simulationData;
 
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            if (isInside && isInside[row] && isInside[row][col]) {
-                const progress = col / (cols - 1);
-                simulationData.velocityX[row][col] = 50 + progress * 100;
-                simulationData.velocityY[row][col] = Math.sin(progress * Math.PI) * 5;
-                simulationData.pressure[row][col] = 101325 + (1 - progress * 0.3);
-                simulationData.temperature[row][col] = 300 - progress * 50;
-                simulationData.density[row][col] = 1.225 * (1 - progress * 0.2);
-            }
-        }
-    }
-}
+//     for (let row = 0; row < rows; row++) {
+//         for (let col = 0; col < cols; col++) {
+//             if (isInside && isInside[row] && isInside[row][col]) {
+//                 const progress = col / (cols - 1);
+//                 simulationData.velocityX[row][col] = 50 + progress * 100;
+//                 simulationData.velocityY[row][col] = Math.sin(progress * Math.PI) * 5;
+//                 simulationData.pressure[row][col] = 101325 + (1 - progress * 0.3);
+//                 simulationData.temperature[row][col] = 300 - progress * 50;
+//                 simulationData.density[row][col] = 1.225 * (1 - progress * 0.2);
+//             }
+//         }
+//     }
+// }
 
 function renderCurrentState(ctx) {
     try {
@@ -206,7 +224,7 @@ function resetSimulation(canvas) {
 
     try {
         initializeFlow(simulationData);
-        createTestData();
+        // createTestData();
     } catch (error) {
         console.log('Error reinitializing flow: ', error);
     }
