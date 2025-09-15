@@ -465,6 +465,11 @@ button {
     box-sizing: border-box;
 }
 
+.cell.selected {
+  background-color: #e0f7fa; /* light teal */
+  outline: 2px solid #00796b;
+}
+
 .cell:last-child {
     border-right: none;
 }
