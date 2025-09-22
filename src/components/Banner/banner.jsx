@@ -8,8 +8,8 @@ export default function Banner() {
             <div className="navbar-links">
                 <NavLink to="/about">About Me</NavLink>
                 <NavLink to="/sudoku">Sudoku</NavLink>
-                <NavLink to="/3Dmodel">3D Model</NavLink>
-                <NavLink to="/3Dgame">3D Game</NavLink>
+                <NavLink to="/3d-game">3D Game</NavLink>
+                <NavLink to="/3d-model">3D Model</NavLink>
                 <NavLink to="/fea">FEA Nozzle</NavLink>
                 <NavLink to="/read-chinese">Read Chinese</NavLink>
                 <NavLink to="/demographic-data-viewer">US Demographics</NavLink>

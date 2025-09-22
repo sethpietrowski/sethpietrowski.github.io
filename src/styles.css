@@ -192,6 +192,12 @@ hr {
   box-shadow: var(--shadow-card);
 }
 
+.container:has(#sudoku-container) {
+  max-width: 1200px;
+  width: 95vw;
+  min-width: 900px;
+}
+
 .canvas-area {
   background: var(--color-bg-card);
   border-radius: var(--spacing-sm);
@@ -287,8 +293,8 @@ hr {
 }
 
 .number-button {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     font-size: var(--spacing-lg);
     cursor: pointer;
 }
@@ -440,12 +446,18 @@ button {
 }
 
 /* Sudoku Game */
-.sudokuContainer {
-    text-align: center;
-    margin: 80px 0 0 var(--spacing-lg);
+.sudoku-container {
+    margin: 0 auto;
+    border-radius: 15px;
+    max-width: 1200px;
+    width: 95vw;
+    min-width: 900px;
+}
+
+#sudoku-container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
+    flex-wrap: nowrap;
 }
 
 #sudoku-board {
@@ -465,11 +477,6 @@ button {
     box-sizing: border-box;
 }
 
-.cell.selected {
-  background-color: #e0f7fa; /* light teal */
-  outline: 2px solid #00796b;
-}
-
 .cell:last-child {
     border-right: none;
 }
@@ -482,27 +489,16 @@ button {
 #number-buttons {
     display: grid;
     grid-template-columns: repeat(3, 40px);
-    grid-gap: var(--spacing-xs);
+    column-gap: 3rem;
+    width: 100%;
 }
 
 #game-area {
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;    
-}
-
-#game-area.sudoku-game {
-    position: static;
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: center;
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;   
+    width: auto;
 }
 
 .start-nums {
@@ -517,31 +513,105 @@ button {
     border-right: 3px solid black;
 }
 
-/* 3D Model Indicators */
+#controls-area {
+  display: flex;
+  flex-direction: column;
+  min-width: 250px;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+#new-game, #check-solution {
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+#message-area {
+  margin-top: 1rem;
+  text-align: center;
+  max-width: 400px;
+}
+
+.message {
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-bottom: 0.5rem;
+}
+
+/* 3D Model/Game */
+
+.three-d-model-container,
+.three-d-game-container {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.three-d-model-container .container {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: white !important;
+  z-index: 10 !important;
+  border-radius: 0 !important;
+}
+
+canvas {
+  display: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
 .indicator {
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: var(--font-size-lg);
     border: 2px solid var(--color-text-primary);
     border-radius: var(--spacing-sm);
     padding: var(--spacing-sm) var(--spacing-lg);
     color: var(--color-text-primary);
     background-color: rgba(0,0,0,0.7);
     text-align: center;
+    z-index: 100;
+    pointer-events: none;
+    user-select: none;
 }
 
-.activate { /* active/inactive viewport of 3d model */
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.indicator.activate { /* active/inactive viewport of 3d model */
     display: block;
+    cursor: pointer;
+    pointer-events: auto;
 }
 
-.exit { /* active/inactive viewport of 3d model */
-    top: var(--spacing-sm);
-    left: var(--spacing-sm);
+.indicator.exit { /* active/inactive viewport of 3d model */
     display: none;
+    cursor: pointer;
+    pointer-events: auto;
 }
 
-/* Instructions Overlay */
+/* 3d Model header container */
+.container h1 {
+    margin: 0 0 10px 0;
+    font-size: 1.5em;
+}
+
+.container p {
+    margin: 0;
+    font-size: 1em;
+    line-height: 1.4;
+}
+
+/* 3d game Instructions Overlay */
 #instructions-overlay {
     position: fixed;
     top: 0;
@@ -552,30 +622,45 @@ button {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10;
+    z-index: 1000;
 }
 
 #instructions-box {
     background: var(--color-text-primary);
-    color: #000;
     padding: var(--spacing-lg);
     border-radius: var(--spacing-sm);
     text-align: center;
-    max-width: 90%;
-    box-shadow: 0 2px var(--spacing-sm) rgba(0,0,0,0.5);
-    z-index: 11;
+    max-width: 500px;
+    box-shadow: 0 4px var(--spacing-lg) rgba(0,0,0,0.5);
 }
 
-#instructions-box button {
-    margin-top: var(--spacing-lg);
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border: none;
-    background: #007bff;
-    color: var(--color-text-primary);
-    border-radius: var(--spacing-xs);
-    cursor: pointer;
-    z-index: 12;
+#instructions-box h2 {
+    margin: 0 0 20px 0;
+    color: var(--color-bg-primary);
 }
+
+#instructions-box p {
+    margin: 0 0 20px 0;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+}
+
+#accept-btn {
+    background-color: var(--color-secondary);
+    color: var(--color-text-primary);
+    border: none;
+    padding: 12px 30px;
+    border-radius: var(--spacing-sm);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#accept-btn:hover {
+    background: var(--color-secondary-hover);
+}
+
+
 
 /* Controls for fea */
 .main-layout {

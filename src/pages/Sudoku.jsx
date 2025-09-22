@@ -29,29 +29,63 @@ export default function Sudoku() {
 
   const [board, setBoard] = useState(initialBoard);
   const [selected, setSelected] = useState({ row: null, col: null });
+  const [message, setMessage] = useState(null);
 
   // Arrow key navigation
   useEffect(() => {
     const handleKey = (event) => {
-      if (selected.row === null) return;
+      if (selected.row === null || selected.col === null) return;
 
       let { row, col } = selected;
       switch (event.key) {
         case 'ArrowUp':
           event.preventDefault(); //default behavior changes the number of the cell
-          if (row > 0) setSelected({ row: row - 1, col });
+          if (row > 0) {
+            setSelected({ row: row - 1, col });
+            setTimeout(() => {
+              const cell = document.querySelector(`input[data-row='${row - 1}'][data-col='${col}']`);
+              if (cell) cell.focus();
+            }, 0);
+          }
           break;
         case 'ArrowDown':
           event.preventDefault();
-          if (row < 8) setSelected({ row: row + 1, col });
+          if (row < 8) {
+            setSelected({ row: row + 1, col });
+            setTimeout(() => {
+              const cell = document.querySelector(`input[data-row='${row + 1}'][data-col='${col}']`);
+              if (cell) cell.focus();
+            }, 0);
+          }
           break;
         case 'ArrowLeft':
           event.preventDefault();
-          if (col > 0) setSelected({ row, col: col - 1 });
+          if (col > 0) {
+            setSelected({ row, col: col - 1 });
+            setTimeout(() => {
+              const cell = document.querySelector(`input[data-row='${row}'][data-col='${col - 1}']`);
+              if (cell) cell.focus();
+            }, 0);
+          }
           break;
         case 'ArrowRight':
           event.preventDefault();
-          if (col < 8) setSelected({ row, col: col + 1 });
+          if (col < 8) {
+            setSelected({ row, col: col + 1 });
+            setTimeout(() => {
+              const cell = document.querySelector(`input[data-row='${row}'][data-col='${col + 1}']`);
+              if (cell) cell.focus();
+            }, 0);
+          }
+          break;
+        case '1': case '2': case '3': case '4': case '5':
+        case '6': case '7': case '8': case '9':
+          event.preventDefault();
+          handleInput(parseInt(event.key));
+          break;
+        case 'Backspace': case 'Delete': case ' ':
+          event.preventDefault();
+          handleInput(0);
           break;
         default:
           break;
@@ -61,131 +95,60 @@ export default function Sudoku() {
     window.addEventListener('keydown', handleKey);
 
     return () => window.removeEventListener('keydown', handleKey);
-  }, [selected]);
+  }, [selected, board, initialBoard]);
 
   //handle number input (keyboard/buttons)
   const handleInput = (value) => {
-    if (selected.row === null) return;
+    if (selected.row === null || selected.col === null) return;
 
     const { row, col } = selected;
     if (initialBoard[row][col] !== 0) return; // Lock original numbers
 
-    const newBoard = board.map((r, i) => 
-      r.map((c, j) => (i === row && j === col ? value : c))
-    );
+    const newBoard = [...board];
+    newBoard[row][col] = value;
     setBoard(newBoard);
   };
 
   //check solution
   const checkSolution = () => {
-    let correct = true;
+    let incorrectCount = 0;
+    let emptyCount = 0;
+
     for (let r = 0; r < 9; r++) {
       for (let c = 0; c < 9; c++) {
-        if (board[r][c] !== solution[r][c]) {
-          correct = false;
+        if (board[r][c] === 0) {
+          emptyCount++;
+        } else if (board[r][c] !== solution[r][c]) {
+          incorrectCount++;
         }
       }
     }
-    alert(correct ? "Congratulations! You solved the puzzle correctly." : "The solution is incorrect. Please try again.");
+
+    if (emptyCount > 0) {
+      setMessage({
+        type: 'warning',
+        text: 'Please fill in all cells before checking solution.',
+      });
+    } else if (incorrectCount > 0) {
+      setMessage({
+        type: 'error',
+        text: 'The solution is incorrect. Please try again.',
+        incorrectCount: incorrectCount
+      });
+    } else {
+      setMessage({
+        type: 'success',
+        text: 'Congratulations, you solved the puzzle correctly!',
+      });
+    }
   };
 
   // new game button
   const newGame = () => {
-    setBoard(initialBoard);
+    setBoard(initialBoard.map(row => [...row]));
     setSelected({ row: null, col: null });
+    setMessage(null);
   };
-  
-
-
-  // // Create a Sudoku grid
-  // const sudokuBoard = document.getElementById("sudoku-board");
-  // const newGameButton = document.getElementById("new-game");
-
-
-  // // Function to initialize the Sudoku board
-  // function createBoard() {
-  //     // Clear previous cells
-  //     sudokuBoard.innerHTML = '';
-
-  //     // Populate the grid
-  //     for (let row = 0; row < 9; row++) {
-  //         for (let col = 0; col < 9; col++) {
-  //             const cell = document.createElement("input");
-  //             cell.type = "number";
-  //             cell.min = 1;
-  //             cell.max = 9;
-  //             cell.className = "cell";
-  //             cell.setAttribute("step", "1"); //disable step functionality
-  //             cell.setAttribute("onkeydown", "return event.key !== 'ArrowUp' && event.key !== 'ArrowDown';"); //disable arrow key increment and decrement
-
-  //             if (board[row][col] !== 0) {
-  //                 cell.value = board[row][col];
-  //                 cell.classList.add('start-nums');
-  //                 cell.disabled = true; // Lock original numbers
-  //             } else {
-  //                 cell.value = '';
-  //             }
-              
-  //             cell.setAttribute('data-row', row);
-  //             cell.setAttribute('data-col', col);
-
-  //             if (row ===2 || row === 5) {
-  //               cell.classList.add("horizontal-line");
-  //             }
-  //             if (col ===2 || col === 5) {
-  //               cell.classList.add("vertical-line");
-  //             }
-
-  //             //Hande selecting cells
-  //             cell.addEventListener('click', () => {
-  //               if (selectedCell) {
-  //                 selectedCell.classList.remove('selected');
-  //               }
-  //               selectedCell = cell;
-  //               selectedCell.classList.add('selected');
-  //               selectedCell.focus(); //have cell focus tracked
-  //             })
-
-  //             sudokuBoard.appendChild(cell);
-  //         }
-  //     }
-  // }
-
-  // function selectCell(row, col) {
-  //   if (selectedCell) {
-  //     selectedCell.classList.remove('selected');
-  //   }
-  //   selectedCell = document.querySelector(`input[data-row='${row}'][data-col='${col}']`);
-  //   selectedCell.classList.add('selected');
-  //   selectedCell.focus(); //selected cell changed, so focus this one
-  // }
-
-  // // Function to check if the solution is correct
-  // function checkSolution() {
-  //     let isCorrect = true;
-
-  //   for (let row = 0; row < 9; row++) {
-  //     for (let col = 0; col < 9; col++) {
-  //       const cell = document.querySelector(`input[data-row='${row}'][data-col='${col}']`);
-  //       const userValue = parseInt(cell.value, 10) || 0; // Read user input, treat empty as 0
-
-  //       // Check if the filled value matches the solution, but ignore empty cells
-  //       if (!userValue) {
-  //         cell.style.backgroundColor = '#ffcccc'; // Highlight empty cells
-  //         isCorrect = false;
-  //       } else if (userValue !== 0 && userValue !== solution[row][col]) {
-  //         cell.style.backgroundColor = '#ffcccc'; // Highlight incorrect cells
-  //         isCorrect = false;
-  //       } else {
-  //         cell.style.backgroundColor = '#ccffcc'; // Highlight correct cells
-  //       }
-  //     }
-  //   }
-  // }
-
-
-  // // Initialize the board when the page loads
-  // window.onload = createBoard();
   
   return (
     <div className="container">
@@ -193,49 +156,68 @@ export default function Sudoku() {
       <h1>✏️Sudoku</h1>
       <div id="sudoku-container">
         <div id="game-area" className="sudoku-game">
-            <div id="sudoku-board">
-              {board.map((row, r) => 
-                row.map((val, c) => {
-                  const isSelected = selected.row === r && selected.col === c;
-                  const isFixed = initialBoard[r][c] !== 0;
-                  return (
-                    <input
-                      key={`${r}-${c}`}
-                      type="text"
-                      value={val === 0 ? "" : val}
-                      onClick={() => setSelected({ row: r, col: c })}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === '' || /^[1-9]$/.test(value)) {
-                          handleCellChange(r, c, value);
-                        }
+          <div id="sudoku-board">
+            {board.map((row, r) => 
+              row.map((val, c) => {
+                const isSelected = selected.row === r && selected.col === c;
+                const isFixed = initialBoard[r][c] !== 0;
+
+                return (
+                  <input
+                    key={`${r}-${c}`}
+                    type="text"
+                    disabled={isFixed}
+                    value={val || ""}
+                    data-row={r}
+                    data-col={c}
+                    onClick={() => setSelected({ row: r, col: c })}
+                    className={`cell
+                      ${isFixed ? "start-nums" : ""}
+                      ${isSelected ? "selected" : ""}
+                      ${r === 2 || r === 5 ? "horizontal-line" : ""}
+                      ${c === 2 || c === 5 ? "vertical-line" : ""}`}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '' || /^[1-9]$/.test(value)) {
+                        handleInput(value === '' ? 0 : parseInt(value));
                       }
-                      disabled={isFixed}
-                      className={`cell
-                        ${isFixed ? "start-nums" : ""}
-                        ${isSelected ? "selected" : ""}
-                        ${r === 2 || r === 5 ? "horizontal-line" : ""}
-                        ${c === 2 || c === 5 ? "vertical-line" : ""}`}
-                    />
-                  );
-                })
+                    }}
+                  />
+                );
+              })
+            )}
+          </div>
+
+          {message && (
+            <div id="message-area">
+              <div className={`message ${message.type}`}>
+                {message.text}
+              </div>
+              {message.incorrectCount !== undefined && (
+                <div className="incorrect-count">
+                  Incorrect Count: {message.incorrectCount}
+                </div>
               )}
             </div>
+          )}
+        </div>
             
-            <div id="number-buttons">
-              {[1,2,3,4,5,6,7,8,9].map(num => (
-                <button 
+        <div id="controls-area">
+          <div id="number-buttons">
+            {[1,2,3,4,5,6,7,8,9].map(num => (
+              <button 
                 key={num} 
                 className="number-button" 
                 onClick={() => handleInput(num)}
-                >
-                  {num}
-                </button>
-              ))}   
-            </div>
+              >
+                {num}
+              </button>
+            ))}   
+          </div>
+          <button id="new-game" onClick={newGame}>New Game</button>
+          <button id="check-solution" onClick={checkSolution}>Check Solution</button>
         </div>
-        <button id="new-game">New Game</button>
-        <button id="check-solution">Check Solution</button>
+      </div>
     </div>
   );
 }
