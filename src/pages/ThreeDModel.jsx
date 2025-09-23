@@ -1,4 +1,4 @@
-import {useEffect, useRef } from "react";
+import {useEffect, useRef, useState } from "react";
 import * as THREE from 'three';
 import '../styles.css'
 
@@ -6,6 +6,9 @@ const ThreeDModel = () => {
   const gameAreaRef = useRef(null);
   const sceneRef = useRef(null);
   const animationIdRef = useRef(null);
+  const rendererRef = useRef(null);
+  const [isActive, setIsActive] = useState(false);
+
   const stateRef = useRef({
     isActive: false,
     targetX: 0,
@@ -27,10 +30,12 @@ const ThreeDModel = () => {
     const gameArea = gameAreaRef.current;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, gameArea.clientWidth / gameArea.clientHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true});
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    
+    renderer.setSize(gameArea.clientWidth, gameArea.clientHeight);
     gameArea.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
     // create cube, add to scene
     const geometry = new THREE.TorusKnotGeometry();
@@ -55,6 +60,7 @@ const ThreeDModel = () => {
       fragmentShader, 
       wireframe: false, 
     });
+
     const cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
 
@@ -70,65 +76,78 @@ const ThreeDModel = () => {
     sceneRef.current = { scene, camera, renderer, cube };
 
     const movementSpeed = 0.1;
-    const rotationSpeed = 0.001; 
+    const rotationSpeed = 0.003; 
 
     const activateIndicator = document.createElement('div');
     const exitIndicator = document.createElement('div');
-    activateIndicator.className = 'indicator activate';
-    activateIndicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); color: white; padding: 20px; border-radius: 10px; font-size: 18px; text-align: center; z-index: 1000; cursor: pointer;';
+
     activateIndicator.innerText = "Click Here to Activate Viewport";
-    exitIndicator.className = 'indicator exit';
-    exitIndicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); color: white; padding: 20px; border-radius: 10px; font-size: 18px; text-align: center; z-index: 1000; display: none;';
+    activateIndicator.className = 'pointer-lock-indicator exit-indicator';
     exitIndicator.innerText = "Press Esc to Exit Viewport";
+    exitIndicator.className = 'pointer-lock-indicator exit-indicator';
+    exitIndicator.style.display = 'none';
+    exitIndicator.style.top = '20px';
+    exitIndicator.style.left = '20px';
+    exitIndicator.style.transform = 'none';    
+
     gameArea.appendChild(activateIndicator);
     gameArea.appendChild(exitIndicator);
 
+    const updateIndicators = (active) => {
+      activateIndicator.style.display = active ? 'none' : 'block';
+      exitIndicator.style.display = active ? 'block' : 'none';
+    };
+
     const handleGameAreaClick = (event) => {
-      if (event.target === activateIndicator && !stateRef.current.isActive) {
+      if (event.target === activateIndicator && !isActive) {
+        setIsActive(true);
         stateRef.current.isActive = true;
-        activateIndicator.style.display = 'none';
-        exitIndicator.style.display = 'block';
+        updateIndicators(true);
       }
     };
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && stateRef.current.isActive) {
+      if (event.key === 'Escape' && isActive) {
+        setIsActive(false);
         stateRef.current.isActive = false;
-        activateIndicator.style.display = 'block';
-        exitIndicator.style.display = 'none';
+        updateIndicators(false);
         return;
       }
 
       if (stateRef.current.isActive) {
-        switch (event.key) {
+        switch (event.key.toLowerCase()) {
           case 'w': stateRef.current.moveForward = true; break;
           case 's': stateRef.current.moveBackward = true; break;
           case 'a': stateRef.current.moveLeft = true; break;
           case 'd': stateRef.current.moveRight = true; break;
-          case ' ': stateRef.current.moveUp = true; break;
-          case 'Control': stateRef.current.moveDown = true; break;
-          case 'ArrowUp': cube.position.y += 1; break;
-          case 'ArrowDown': cube.position.y -= 1; break;
-          case 'ArrowLeft': cube.position.x -= 1; break;
-          case 'ArrowRight': cube.position.x += 1; break;
+          case ' ': 
+            event.preventDefault();  
+            stateRef.current.moveUp = true; 
+            break;
+          case 'control': stateRef.current.moveDown = true; break;
+          case 'arrowup': cube.position.y += 1; break;
+          case 'arrowdown': cube.position.y -= 1; break;
+          case 'arrowleft': cube.position.x -= 1; break;
+          case 'arrowright': cube.position.x += 1; break;
         }
       }
     };
 
     const handleKeyUp = (event) => {
-      switch (event.key) {
+      switch (event.key.toLowerCase()) {
         case 'w': stateRef.current.moveForward = false; break;
         case 's': stateRef.current.moveBackward = false; break;
         case 'a': stateRef.current.moveLeft = false; break;
         case 'd': stateRef.current.moveRight = false; break;
         case ' ': stateRef.current.moveUp = false; break;
-        case 'Control': stateRef.current.moveDown = false; break;
+        case 'control': stateRef.current.moveDown = false; break;
       }
     };
 
     const handleMouseDown = (event) => {
-      if (stateRef.current.isActive && event.button === 0) {
+      if (isActive && event.button === 0) {
         stateRef.current.isRotating = true;
+        event.preventDefault();
       }
     };
 
@@ -139,7 +158,7 @@ const ThreeDModel = () => {
     };
 
     const handleMouseMove = (event) => {
-      if (stateRef.current.isActive && stateRef.current.isRotating) {
+      if (isActive && stateRef.current.isRotating) {
         const deltaX = event.movementX || 0;
         const deltaY = event.movementY || 0;
         stateRef.current.rotationX += deltaY * rotationSpeed; 
@@ -148,37 +167,77 @@ const ThreeDModel = () => {
     };
 
     const handleResize = () => {
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const width = gameArea.clientWidth;
+      const height = gameArea.clientHeight;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
     };
 
-    activateIndicator.addEventListener('click', handleGameAreaClick);
-    document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('resize', handleResize);
+    renderer.domElement.addEventListener('click', () => {
+      renderer.domElement.requestPointerLock();
+    });
+
+    if (document.pointerLockElement === renderer.domElement) {
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+      document.addEventListener("mousedown", onMouseDown);
+    } else {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("mousedown", onMouseDown);
+    }
+
+    function onMouseDown(event) {
+      isDragging = true;
+      prevX = event.clientX;
+      prevY = event.clientY;
+    }
+
+    function onMouseMove(event) {
+      if (!isDragging) return;
+
+      const deltaX = event.clientX - prevX;
+      const deltaY = event.clientY - prevY;
+
+      cube.rotation.y += deltaX * 0.01;
+      cube.rotation.x += deltaY * 0.01;
+
+      prevX = event.clientX;
+      prevY = event.clientY;
+    }
+
+    function onMouseUp() {
+      isDragging = false;
+    }
+    // document.addEventListener('keydown', handleKeyDown);
+    // document.addEventListener('keyup', handleKeyUp);
+    // window.addEventListener('resize', handleResize);
 
     //animation functions
-    const adjustRotation = (deltaTime) => {
-      if (stateRef.current && stateRef.current.isRotating) {
+    const adjustRotation = () => {
+      if (stateRef.current.isRotating) {
+        const { rotationX, rotationY } = stateRef.current;
+        
         const qx = new THREE.Quaternion();
         const qy = new THREE.Quaternion();
 
-        qy.setFromAxisAngle(new THREE.Vector3(0, 1, 0), stateRef.current.rotationY);
-        qx.setFromAxisAngle(new THREE.Vector3(1, 0, 0), stateRef.current.rotationX);
+        qy.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
+        qx.setFromAxisAngle(new THREE.Vector3(1, 0, 0), rotationX);
         
-        cube.quaternion.multiplyQuaternions(qy, cube.quaternion);
-        cube.quaternion.multiplyQuaternions(qx, cube.quaternion);
+        sceneRef.current.cube.quaternion.multiply(qy);
+        sceneRef.current.cube.quaternion.multiply(qx);
         
-        stateRef.current.rotationX *= 0.9;
-        stateRef.current.rotationY *= 0.9;
+        stateRef.current.rotationX = 0;
+        stateRef.current.rotationY = 0;
       }
     };
     
     let lastTime = performance.now();
+
+    renderer.domElement.addEventListener("mousedown", onMouseDown);
+    renderer.domElement.addEventListener("mousemove", onMouseMove);
+    renderer.domElement.addEventListener("mouseup", onMouseUp);
 
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
@@ -187,7 +246,7 @@ const ThreeDModel = () => {
       const deltaTime = (now - lastTime) / 1000;
       lastTime = now;
 
-      if (stateRef.current && stateRef.current.isActive) {
+      if (stateRef.current && isActive) {
         adjustRotation(deltaTime);
 
         if (stateRef.current.moveForward) cube.position.z += movementSpeed;
@@ -197,7 +256,7 @@ const ThreeDModel = () => {
         if (stateRef.current.moveUp) cube.position.y -= movementSpeed;
         if (stateRef.current.moveDown) cube.position.y += movementSpeed;
       }
-
+      requestAnimationFrame(animate);
       renderer.render(scene, camera);
     }
 
@@ -211,19 +270,26 @@ const ThreeDModel = () => {
 
       activateIndicator.removeEventListener('click', handleGameAreaClick);
       document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('keyup', handleKeyUp);
+      renderer.domElement.removeEventListener('mousedown', onMouseDown);
+      renderer.domElement.removeEventListener('mouseup', onMouseUp);
+      renderer.domElement.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('resize', handleResize);
 
-      if (gameArea && renderer.domElement) {
-        gameArea.removeChild(renderer.domElement);
+      if (gameArea && gameArea.contains(activateIndicator)) {
+        gameArea.removeChild(activateIndicator);
+      }
+
+      if (gameArea && gameArea.contains(exitIndicator)) {
+        gameArea.removeChild(exitIndicator);
+      }
+
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
       }
 
       geometry.dispose();
       material.dispose();
-      renderer.dispose();
     };
   }, []);
 

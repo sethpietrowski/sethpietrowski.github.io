@@ -3,7 +3,7 @@
     --color-primary: rgb(27, 185, 61);
     --color-primary-dark: rgb(9, 73, 35);
     --color-secondary: rgb(35, 123, 232);
-    --collor-secondary-dark: rgb(32, 63, 128);
+    --color-secondary-dark: rgb(32, 63, 128);
     --color-accent: rgb(205, 22, 22);
     --color-success: green;
     --color-warning: yellow;
@@ -77,6 +77,28 @@ body {
 
 .pointer-locked {
     cursor: none;
+}
+
+.pointer-lock-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 18px;
+    text-align: center;
+    z-index: 1000;
+    cursor: pointer;
+    display: block;
+}
+
+.pointer-lock-indicator.exit-indicator {
+    top: 20px;
+    left: 20px;
+    transform: none;
 }
 
 /* Typography */
@@ -544,6 +566,16 @@ button {
 
 .three-d-model-container,
 .three-d-game-container {
+  width: calc(100vw - 60px);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 80px;
+  overflow: hidden;
+}
+
+.three-d-model-container > div:last-child,
+.three-d-game-container > div:last-child {
   width: 100%;
   height: 100vh;
   position: relative;
@@ -551,23 +583,23 @@ button {
 }
 
 .three-d-model-container .container {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  width: auto !important;
-  height: auto !important;
-  margin: 0 !important;
-  background: rgba(0, 0, 0, 0.8) !important;
-  color: white !important;
-  z-index: 10 !important;
-  border-radius: 0 !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  z-index: 10;
+  border-radius: 0;
+  padding: 1rem;
+  pointer-events: none;
 }
 
-canvas {
-  display: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
+.three-d-model-container .container * {
+  pointer-events: auto;
 }
 
 .indicator {
@@ -657,7 +689,7 @@ canvas {
 }
 
 #accept-btn:hover {
-    background: var(--color-secondary-hover);
+    background: var(--color-secondary-dark);
 }
 
 
@@ -1410,6 +1442,12 @@ iframe {
     #fea-canvas {
         width: 600px;
         height: 300px;
+    }
+
+    .three-d-model-container,
+    .three-d-game-container {
+        width: 100vw;
+        left: 0; 
     }
 }
 

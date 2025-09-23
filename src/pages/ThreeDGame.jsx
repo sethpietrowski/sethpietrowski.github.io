@@ -1,13 +1,15 @@
 import {useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import '../styles.css';
 
 const ThreeDGame = () => {
   const gameAreaRef = useRef(null);
   const sceneRef = useRef(null);
   const animationIdRef = useRef(null);
+  const rendererRef = useRef(null);
+  const controlsRef = useRef(null);
   const [showOverlay, setShowOverlay] = useState(true);
+  const [isPointerLocked, setIsPointerLocked] = useState(false);
 
   const keysRef = useRef({
     w: false,
@@ -23,12 +25,16 @@ const ThreeDGame = () => {
 
     const gameArea = gameAreaRef.current;
 
+    //clear existing content
+    gameArea.innerHTML = '';
+
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, gameArea.clientWidth / gameArea.clientHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true});
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-    camera.updateProjectionMatrix();
+    
+    renderer.setSize(gameArea.clientWidth, gameArea.clientHeight);
+    gameArea.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
     // create cube, add to scene
     const geometry = new THREE.BoxGeometry();
@@ -36,7 +42,7 @@ const ThreeDGame = () => {
     const cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
 
-    camera.position.z = 5;
+    camera.position.set(0, 0, 5);
     camera.lookAt(cube.position);
     camera.fov = 60;
     camera.updateProjectionMatrix();
@@ -49,74 +55,110 @@ const ThreeDGame = () => {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // soft white light
     scene.add(ambientLight);
 
-    const controls = new PointerLockControls(camera, document.body);
-    scene.add(controls.object);
+    const createPointerLockControls = () => {
+      const controls = {
+        camera: camera,
+        domElement: renderer.domElement,
+        isLocked: false,
+
+        lock: () => {
+          renderer.domElement.requestPointerLock();
+        },
+
+        unlock: () => {
+          document.exitPointerLock();
+        }
+      };
+
+      return controls;
+    }
+
+    const controls = createPointerLockControls();
+    controlsRef.current = controls;
 
     sceneRef.current = { scene, camera, renderer, cube, controls };
 
-    const createElement = (tag, className, textContent, styles = {}) => {
-      const element = document.createElement(tag);
-      if (className) element.className = className;
-      if (textContent) element.innerText = textContent;
-      Object.assign(element.style, styles);
-      return element;
-    };
-
-    const activateIndicator = createElement('div', 'indicator activate', 'Click Here to Activate Viewport');
-    activateIndicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); color: white; padding: 20px; border-radius: 10px; font-size: 18px; text-align: center; z-index: 1000; cursor: pointer;';
+    const activateIndicator = document.createElement('div');
+    activateIndicator.className = 'pointer-lock-indicator';
+    activateIndicator.innerText = /Mobi|Android/i.test(navigator.userAgent)
+      ? '3D Game is not supported on mobile.' 
+      : 'Click Here to Activate Viewport';
+    activateIndicator.style.display = isPointerLocked ? 'none' : 'block';
+    
     gameArea.appendChild(activateIndicator);
     
-    if (/Mobi|Android/i.test(navigator.userAgent)) {
-      activateIndicator.innerText = "3D Game is not supported on mobile.";
-    }
-
     const movementSpeed = 0.05;
+    let mouseX = 0;
+    let mouseY = 0;
 
     const handlePointerLockChange = () => {
-      if (activateIndicator) {
-        activateIndicator.style.display = 
-          document.pointerLockElement === document.body ? 'none' : 'block';
+      const locked = document.pointerLockElement === renderer.domElement;
+      controls.isLocked = locked;
+      setIsPointerLocked(locked);
+      activateIndicator.style.display = locked ? 'none' : 'block';
+
+      if (locked) {
+        document.body.style.cursor = 'none';
+      } else {
+        document.body.style.cursor = 'default';
       }
     };
 
-    const handleClick = () => {
-      if (!document.pointerLockElement) {
+    const handleClick = (event) => {
+      if (event.target === activateIndicator && !controls.isLocked) {
         controls.lock();
       }
     };
 
-    const handleLock = () => {
-      console.log('Pointer locked');
-    };
+    const handleMouseMove = (event) => {
+      if (controls.isLocked) {
+        const movementX = event.movementX || 0;
+        const movementY = event.movementY || 0;
 
-    const handleUnlock = () => {
-      console.log('Pointer unlocked');
-    };
+        mouseX -= movementX * 0.002;
+        mouseY -= movementY * 0.002;
+        mouseY = Math.max(-Math.PI/2, Math.min(Math.PI/2, mouseY));
+
+        camera.rotation.order = 'YXZ';
+        camera.rotation.x = mouseY;
+        camera.rotation.y = mouseX;
+      }
+    }
 
     const handleKeyDown = (event) => {
       const key = event.key.toLowerCase();
-      if (key === " ") keysRef.current.space = true;
-      else if (key === "control") keysRef.current.control = true;
-      else if (key in keysRef.current) keysRef.current[key] = true;
+      if (key === " ") {
+        event.preventDefault;
+        keysRef.current.space = true;
+      } else if (key === "control") {
+        keysRef.current.control = true;
+      } else if (key in keysRef.current) {
+        keysRef.current[key] = true;
+      }
     };
 
     const handleKeyUp = (event) => {
       const key = event.key.toLowerCase();
-      if (key === " ") keysRef.current.space = false;
-      else if (key === "control") keysRef.current.control = false;
-      else if (key in keysRef.current) keysRef.current[key] = false;
+      if (key === " ") {
+        keysRef.current.space = false;
+      } else if (key === "control") {
+        keysRef.current.control = false;
+      } else if (key in keysRef.current) {
+        keysRef.current[key] = false;
+      }
     };
 
     const handleResize = () => {
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const width = gameArea.clientWidth;
+      const height = gameArea.clientHeight;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
     };
 
     document.addEventListener("pointerlockchange", handlePointerLockChange);
-    document.addEventListener("click", handleClick);
-    controls.addEventListener("lock", handleLock);
-    controls.addEventListener("unlock", handleUnlock);
+    activateIndicator.addEventListener("click", handleClick);
+    document.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     window.addEventListener("resize", handleResize);
@@ -126,18 +168,37 @@ const ThreeDGame = () => {
 
       if (controls.isLocked) {
         const direction = new THREE.Vector3();
+        const cameraDirection = new THREE.Vector3();
+        camera.getWorldDirection(cameraDirection);
 
-        if (keysRef.current.w) direction.z -= movementSpeed;
-        if (keysRef.current.s) direction.z += movementSpeed;
-        if (keysRef.current.a) direction.x -= movementSpeed;
-        if (keysRef.current.d) direction.x += movementSpeed;
-        if (keysRef.current.space) direction.y += movementSpeed;
-        if (keysRef.current.control) direction.y -= movementSpeed;
-
-        if (direction.length() > 0) {
-          direction.applyQuaternion(camera.quaternion);
-          controls.object.position.add(direction);
+        const right = new THREE.Vector3();
+        right.crossVectors(cameraDirection, camera.up).normalize();
+        
+        if (keysRef.current.w) {
+          direction.add(cameraDirection.clone().multiplyScalar(movementSpeed));
         }
+
+        if (keysRef.current.s) {
+          direction.add(cameraDirection.clone().multiplyScalar(-movementSpeed));
+        }
+
+        if (keysRef.current.a) {
+          direction.add(right.clone().multiplyScalar(-movementSpeed));
+        }
+
+        if (keysRef.current.d) {
+          direction.add(right.clone().multiplyScalar(movementSpeed));
+        }
+
+        if (keysRef.current.space) {
+          direction.y += movementSpeed;
+        }
+
+        if (keysRef.current.control) {
+          direction.y -= movementSpeed;
+        }
+
+        camera.position.add(direction);
       }
 
       renderer.render(scene, camera);
@@ -152,20 +213,24 @@ const ThreeDGame = () => {
 
       document.removeEventListener("pointerlockchange", handlePointerLockChange);
       activateIndicator.removeEventListener("click", handleClick);
-      document.removeEventListener("click", handleClick);
-      controls.removeEventListener("lock", handleLock);
-      controls.removeEventListener("unlock", handleUnlock);
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("resize", handleResize);
 
-      if (document.body.contains(renderer.domElement)) {
-        document.body.removeChild(renderer.domElement);
+
+      document.body.style.cursor = 'default';
+
+      if (gameArea && gameArea.contains(activateIndicator)) {
+        gameArea.removeChild(activateIndicator);
+      }
+
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
       }
 
       geometry.dispose();
       material.dispose();
-      renderer.dispose();
     };
   }, [showOverlay]);
   
