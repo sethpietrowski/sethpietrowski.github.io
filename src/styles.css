@@ -602,7 +602,37 @@ button {
   pointer-events: auto;
 }
 
-.indicator {
+.activate-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.9);
+  color: var(--color-text-primary);
+  padding: 20px;
+  border-radius: 10px;
+  font-size: 18px;
+  text-align: center;
+  z-index: 1000;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.exit-indicator {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(0,0,0,0.9);
+  color: var(--color-text-primary);
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 18px;
+  z-index: 1000;
+  display: none;
+  pointer-events: auto;
+}
+
+/* .indicator {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -617,7 +647,7 @@ button {
     z-index: 100;
     pointer-events: none;
     user-select: none;
-}
+} */
 
 .indicator.activate { /* active/inactive viewport of 3d model */
     display: block;

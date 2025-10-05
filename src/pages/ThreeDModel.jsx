@@ -11,8 +11,6 @@ const ThreeDModel = () => {
 
   const stateRef = useRef({
     isActive: false,
-    targetX: 0,
-    targetY: 0,
     rotationX: 0,
     rotationY: 0,
     moveForward: false,
@@ -82,13 +80,9 @@ const ThreeDModel = () => {
     const exitIndicator = document.createElement('div');
 
     activateIndicator.innerText = "Click Here to Activate Viewport";
-    activateIndicator.className = 'pointer-lock-indicator exit-indicator';
+    activateIndicator.className = 'activate-indicator';
     exitIndicator.innerText = "Press Esc to Exit Viewport";
-    exitIndicator.className = 'pointer-lock-indicator exit-indicator';
-    exitIndicator.style.display = 'none';
-    exitIndicator.style.top = '20px';
-    exitIndicator.style.left = '20px';
-    exitIndicator.style.transform = 'none';    
+    exitIndicator.className = 'exit-indicator';   
 
     gameArea.appendChild(activateIndicator);
     gameArea.appendChild(exitIndicator);
@@ -98,16 +92,16 @@ const ThreeDModel = () => {
       exitIndicator.style.display = active ? 'block' : 'none';
     };
 
-    const handleGameAreaClick = (event) => {
-      if (event.target === activateIndicator && !isActive) {
-        setIsActive(true);
-        stateRef.current.isActive = true;
-        updateIndicators(true);
-      }
+    const handleActivateClick = (event) => {
+      console.log("Activate button clicked");
+      setIsActive(true);
+      stateRef.current.isActive = true;
+      updateIndicators(true);
+      event.stopPropagation();
     };
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape' && isActive) {
+      if (event.key === 'Escape' && stateRef.current.isActive) {
         setIsActive(false);
         stateRef.current.isActive = false;
         updateIndicators(false);
@@ -145,7 +139,8 @@ const ThreeDModel = () => {
     };
 
     const handleMouseDown = (event) => {
-      if (isActive && event.button === 0) {
+      if (stateRef.current.isActive && event.button === 0) {
+        console.log("Mouse down - starting rotation");
         stateRef.current.isRotating = true;
         event.preventDefault();
       }
@@ -153,14 +148,16 @@ const ThreeDModel = () => {
 
     const handleMouseUp = (event) => {
       if (event.button === 0) {
+        console.log("Mouse up - stopping rotation");
         stateRef.current.isRotating = false;
       }
     };
 
     const handleMouseMove = (event) => {
-      if (isActive && stateRef.current.isRotating) {
+      if (stateRef.current.isActive && stateRef.current.isRotating) {
         const deltaX = event.movementX || 0;
         const deltaY = event.movementY || 0;
+         console.log("Mouse move - deltaX:", deltaX, "deltaY:", deltaY);
         stateRef.current.rotationX += deltaY * rotationSpeed; 
         stateRef.current.rotationY += deltaX * rotationSpeed;
       }
@@ -174,81 +171,102 @@ const ThreeDModel = () => {
       camera.updateProjectionMatrix();
     };
 
-    renderer.domElement.addEventListener('click', () => {
-      renderer.domElement.requestPointerLock();
+    activateIndicator.addEventListener('click', handleActivateClick);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    gameArea.addEventListener('mousedown', handleMouseDown);
+    gameArea.domElement.addEventListener('mouseup', handleMouseUp);
+    gameArea.domElement.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('resize', handleResize);
+
+    console.log("Event listeners added to:", {
+      gameArea: gameArea,
+      rendererElement: renderer.domElement
     });
 
-    if (document.pointerLockElement === renderer.domElement) {
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-      document.addEventListener("mousedown", onMouseDown);
-    } else {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("mousedown", onMouseDown);
-    }
+    // renderer.domElement.addEventListener('click', () => {
+    //   renderer.domElement.requestPointerLock();
+    // });
 
-    function onMouseDown(event) {
-      isDragging = true;
-      prevX = event.clientX;
-      prevY = event.clientY;
-    }
+    // if (document.pointerLockElement === renderer.domElement) {
+    //   document.addEventListener("mousemove", onMouseMove);
+    //   document.addEventListener("mouseup", onMouseUp);
+    //   document.addEventListener("mousedown", onMouseDown);
+    // } else {
+    //   document.removeEventListener("mousemove", onMouseMove);
+    //   document.removeEventListener("mouseup", onMouseUp);
+    //   document.removeEventListener("mousedown", onMouseDown);
+    // }
 
-    function onMouseMove(event) {
-      if (!isDragging) return;
+    // function onMouseDown(event) {
+    //   isDragging = true;
+    //   prevX = event.clientX;
+    //   prevY = event.clientY;
+    // }
 
-      const deltaX = event.clientX - prevX;
-      const deltaY = event.clientY - prevY;
+    // function onMouseMove(event) {
+    //   if (!isDragging) return;
 
-      cube.rotation.y += deltaX * 0.01;
-      cube.rotation.x += deltaY * 0.01;
+    //   const deltaX = event.clientX - prevX;
+    //   const deltaY = event.clientY - prevY;
 
-      prevX = event.clientX;
-      prevY = event.clientY;
-    }
+    //   cube.rotation.y += deltaX * 0.01;
+    //   cube.rotation.x += deltaY * 0.01;
 
-    function onMouseUp() {
-      isDragging = false;
-    }
-    // document.addEventListener('keydown', handleKeyDown);
-    // document.addEventListener('keyup', handleKeyUp);
-    // window.addEventListener('resize', handleResize);
+    //   prevX = event.clientX;
+    //   prevY = event.clientY;
+    // }
 
-    //animation functions
-    const adjustRotation = () => {
-      if (stateRef.current.isRotating) {
-        const { rotationX, rotationY } = stateRef.current;
+    // function onMouseUp() {
+    //   isDragging = false;
+    // }
+    // // document.addEventListener('keydown', handleKeyDown);
+    // // document.addEventListener('keyup', handleKeyUp);
+    // // window.addEventListener('resize', handleResize);
+
+    // //animation functions
+    // const adjustRotation = () => {
+    //   if (stateRef.current.isRotating) {
+    //     const { rotationX, rotationY } = stateRef.current;
         
-        const qx = new THREE.Quaternion();
-        const qy = new THREE.Quaternion();
+    //     const qx = new THREE.Quaternion();
+    //     const qy = new THREE.Quaternion();
 
-        qy.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
-        qx.setFromAxisAngle(new THREE.Vector3(1, 0, 0), rotationX);
+    //     qy.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
+    //     qx.setFromAxisAngle(new THREE.Vector3(1, 0, 0), rotationX);
         
-        sceneRef.current.cube.quaternion.multiply(qy);
-        sceneRef.current.cube.quaternion.multiply(qx);
+    //     sceneRef.current.cube.quaternion.multiply(qy);
+    //     sceneRef.current.cube.quaternion.multiply(qx);
         
-        stateRef.current.rotationX = 0;
-        stateRef.current.rotationY = 0;
-      }
-    };
+    //     stateRef.current.rotationX = 0;
+    //     stateRef.current.rotationY = 0;
+    //   }
+    // };
     
-    let lastTime = performance.now();
+    // let lastTime = performance.now();
 
-    renderer.domElement.addEventListener("mousedown", onMouseDown);
-    renderer.domElement.addEventListener("mousemove", onMouseMove);
-    renderer.domElement.addEventListener("mouseup", onMouseUp);
+    // renderer.domElement.addEventListener("mousedown", onMouseDown);
+    // renderer.domElement.addEventListener("mousemove", onMouseMove);
+    // renderer.domElement.addEventListener("mouseup", onMouseUp);
 
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
 
-      const now = performance.now();
-      const deltaTime = (now - lastTime) / 1000;
-      lastTime = now;
+      // const now = performance.now();
+      // const deltaTime = (now - lastTime) / 1000;
+      // lastTime = now;
 
-      if (stateRef.current && isActive) {
-        adjustRotation(deltaTime);
+      //rotation handling
+      if (stateRef.current.isRotating && stateRef.current.isActive) {
+        cube.rotation.x += stateRef.current.rotationX;
+        cube.rotation.y += stateRef.current.rotationY;
 
+        stateRef.current.rotationX = 0;
+        stateRef.current.rotationY = 0;
+      }
+
+      if (stateRef.current.isActive) {
+        // adjustRotation(deltaTime);
         if (stateRef.current.moveForward) cube.position.z += movementSpeed;
         if (stateRef.current.moveBackward) cube.position.z -= movementSpeed;
         if (stateRef.current.moveLeft) cube.position.x += movementSpeed;
@@ -256,7 +274,7 @@ const ThreeDModel = () => {
         if (stateRef.current.moveUp) cube.position.y -= movementSpeed;
         if (stateRef.current.moveDown) cube.position.y += movementSpeed;
       }
-      requestAnimationFrame(animate);
+
       renderer.render(scene, camera);
     }
 
@@ -268,12 +286,12 @@ const ThreeDModel = () => {
         cancelAnimationFrame(animationIdRef.current);
       }
 
-      activateIndicator.removeEventListener('click', handleGameAreaClick);
+      activateIndicator.removeEventListener('click', handleActivateClick);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
-      renderer.domElement.removeEventListener('mousedown', onMouseDown);
-      renderer.domElement.removeEventListener('mouseup', onMouseUp);
-      renderer.domElement.removeEventListener('mousemove', onMouseMove);
+      renderer.domElement.removeEventListener('mousedown', handleMouseDown);
+      renderer.domElement.removeEventListener('mouseup', handleMouseUp);
+      renderer.domElement.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
 
       if (gameArea && gameArea.contains(activateIndicator)) {
