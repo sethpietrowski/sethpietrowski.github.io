@@ -97,7 +97,7 @@ function setupCanvasDimensions(canvas) {
     simulationData.canvasWidth = canvas.width;
     simulationData.canvasHeight = canvas.height;
 
-    const maxNozzleWidth = simulationData.cointrolPoints.exit_x;
+    const maxNozzleWidth = simulationData.controlPoints.exit_x;
     const scaleX = (canvas.width * 0.9) / maxNozzleWidth;
 
     //scale control points with Canvas

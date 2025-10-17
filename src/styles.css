@@ -574,6 +574,11 @@ button {
   overflow: hidden;
 }
 
+.three-d-model-container canvas {
+    cursor: default !important;
+    pointer-events: auto !important;
+}
+
 .three-d-model-container > div:last-child,
 .three-d-game-container > div:last-child {
   width: 100%;
@@ -599,7 +604,7 @@ button {
 }
 
 .three-d-model-container .container * {
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .activate-indicator {
@@ -629,7 +634,7 @@ button {
   font-size: 18px;
   z-index: 1000;
   display: none;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 /* .indicator {

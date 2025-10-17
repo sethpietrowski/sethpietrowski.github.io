@@ -1,4 +1,3 @@
-import { all, color } from 'three/tsl';
 import { convergenceHistory, convergenceTolerances } from './core.js';
 import { getWallY } from './geometry.js';
 
@@ -104,15 +103,18 @@ export function visualizeFlow(ctx, simulationData, callbacks = null) {
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
             if (isInside[row][col] && !isBoundary[row][col]) {
-                const val = Array.isArray(dataArray[row][col]) ? dataArray[row][col] : 0;
-                if (!isNaN(val) && isFinite(val)) {
+                const val = dataArray[row]?.[col];
+                if (val !== undefined && !isNaN(val) && isFinite(val)) {
                     flatData.push(val);
                 }
             }
         }
     }
 
-    if (flatData.length === 0) return;
+    if (flatData.length === 0) {
+        console.warn('No valid data for visualization');
+        return;
+    }
 
     const minVal = Math.min(...flatData);
     const maxVal = Math.max(...flatData);
@@ -136,10 +138,12 @@ export function visualizeFlow(ctx, simulationData, callbacks = null) {
         for (let col = 0; col < cols; col++) {
             if (!isInside[row][col]) continue;
 
-            const value = Array.isArray(dataArray[row][col]) ? dataArray[row][col] : 0;
+            const value = dataArray[row]?.[col];
+            if (value === undefined || !isFinite(value)) continue;
+
             const color = getColorFromValue(value, minVal, maxVal, visualizationMode);
             ctx.fillStyle = color;
-            ctx.fillRect(col * cellWidth, row * cellHeight, cellWidth, cellHeight);
+            ctx.fillRect(col * cellWidth, row * cellHeight, cellWidth + 0.5, cellHeight + 0.5);
         }
     }
     //update colorbar
@@ -283,7 +287,7 @@ export function drawConvergenceChart(canvas) {
     ];
 
     if (allValues.length === 0) {
-        ctx.fillstyle = 'rgba(255,255,255,0.8)';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Invalid convergence data', width / 2, height / 2);
@@ -297,7 +301,7 @@ export function drawConvergenceChart(canvas) {
     const logRange = logMax - logMin;
 
     if (logRange <= 0) {
-        ctx.fillstyle = 'rgba(255,255,255,0.8)';
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Insufficient data range', width / 2, height / 2);
@@ -307,7 +311,8 @@ export function drawConvergenceChart(canvas) {
     // Draw Grid
     drawChartGrid(ctx, width, height, logMin, logMax, logRange);
     drawConvergenceLines(ctx, width, height, logMin, logRange);
-    drawConvergenceLabels(ctx, width, height, logMin, logRange);
+    //drawConvergenceLabels(ctx, width, height, logMin, logRange); //currently missing fn.
+    drawToleranceLines(ctx, width, height, logMin, logRange);
     drawChartLegend(ctx, width, height);
 }
 
@@ -401,7 +406,7 @@ function drawToleranceLines(ctx, width, height, logMin, logRange) {
     tolerances.forEach((tol) => {
         if (tol.value <= 0) return;
 
-        const logTol = Math.log10(tol);
+        const logTol = Math.log10(tol.value);
         if (logTol < logMin || logTol > logMin + logRange) return;
 
         const y = height - ((logTol - logMin) / logRange) * height;

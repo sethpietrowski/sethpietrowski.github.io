@@ -96,10 +96,16 @@ export default function FEA() {
     // Update canvas actual size when dimensions change
     useEffect(() => {
         if (canvasRef.current) {
-            canvasRef.current.width = canvasDimensions.width;
-            canvasRef.current.height = canvasDimensions.height;
+            const scale = window.devicePixelRatio || 1;
+            canvasRef.current.width = canvasDimensions.width * scale;
+            canvasRef.current.height = canvasDimensions.height * scale;
             canvasRef.current.style.width = `${canvasDimensions.width}px`;
             canvasRef.current.style.height = `${canvasDimensions.height}px`;
+
+            const ctx = canvasRef.current.getContext('2d');
+            if (ctx) {
+                ctx.scale(scale, scale);
+            }
         }
     }, [canvasDimensions]);
 

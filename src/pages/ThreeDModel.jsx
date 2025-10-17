@@ -27,6 +27,10 @@ const ThreeDModel = () => {
 
     const gameArea = gameAreaRef.current;
 
+    while (gameArea.firstChild) {
+      gameArea.removeChild(gameArea.firstChild);
+    }
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, gameArea.clientWidth / gameArea.clientHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true});
@@ -74,7 +78,7 @@ const ThreeDModel = () => {
     sceneRef.current = { scene, camera, renderer, cube };
 
     const movementSpeed = 0.1;
-    const rotationSpeed = 0.003; 
+    const rotationSpeed = 0.01; 
 
     const activateIndicator = document.createElement('div');
     const exitIndicator = document.createElement('div');
@@ -93,10 +97,23 @@ const ThreeDModel = () => {
     };
 
     const handleActivateClick = (event) => {
-      console.log("Activate button clicked");
+      // console.log("Activate button clicked");
+      // console.log("rendererRef.current:", rendererRef.current);
+      // console.log("renderer.domElement:", rendererRef.current?.domElement);
       setIsActive(true);
       stateRef.current.isActive = true;
       updateIndicators(true);
+
+      if (rendererRef.current && rendererRef.current.domElement) {
+        rendererRef.current.domElement.style.cursor = 'grab';
+        rendererRef.current.domElement.style.pointerEvents = 'auto';
+        rendererRef.current.domElement.style.position = 'relative';
+        rendererRef.current.domElement.style.zIndex = '1';
+        // console.log("Canvas cursor set to grab");
+        // console.log("Canvas element:", rendererRef.current.domElement);
+        // console.log("Canvas position:", rendererRef.current.domElement.getBoundingClientRect());
+      }
+
       event.stopPropagation();
     };
 
@@ -119,10 +136,10 @@ const ThreeDModel = () => {
             stateRef.current.moveUp = true; 
             break;
           case 'control': stateRef.current.moveDown = true; break;
-          case 'arrowup': cube.position.y += 1; break;
-          case 'arrowdown': cube.position.y -= 1; break;
-          case 'arrowleft': cube.position.x -= 1; break;
-          case 'arrowright': cube.position.x += 1; break;
+          case 'arrowup': sceneRef.current.cube.position.y += 1; break;
+          case 'arrowdown': sceneRef.current.cube.position.y -= 1; break;
+          case 'arrowleft': sceneRef.current.cube.position.x -= 1; break;
+          case 'arrowright': sceneRef.current.cube.position.x += 1; break;
         }
       }
     };
@@ -140,26 +157,35 @@ const ThreeDModel = () => {
 
     const handleMouseDown = (event) => {
       if (stateRef.current.isActive && event.button === 0) {
-        console.log("Mouse down - starting rotation");
+        // console.log("Mouse down - starting rotation");
         stateRef.current.isRotating = true;
+        if(rendererRef.current) {
+          rendererRef.current.domElement.style.cursor = 'grabbing';
+        }
         event.preventDefault();
       }
     };
 
     const handleMouseUp = (event) => {
       if (event.button === 0) {
-        console.log("Mouse up - stopping rotation");
+        // console.log("Mouse up - stopping rotation");
         stateRef.current.isRotating = false;
+        if(stateRef.current.isActive && rendererRef.current) {
+          rendererRef.current.domElement.style.cursor = 'grab';
+        }
       }
     };
 
     const handleMouseMove = (event) => {
-      if (stateRef.current.isActive && stateRef.current.isRotating) {
+      if (!stateRef.current.isActive || !stateRef.current.isRotating) return;
+      if (sceneRef.current) {
         const deltaX = event.movementX || 0;
         const deltaY = event.movementY || 0;
-         console.log("Mouse move - deltaX:", deltaX, "deltaY:", deltaY);
-        stateRef.current.rotationX += deltaY * rotationSpeed; 
-        stateRef.current.rotationY += deltaX * rotationSpeed;
+        // console.log("Mouse move - deltaX:", deltaX, "deltaY:", deltaY);
+        // console.log("Cube before:", sceneRef.current.cube.rotation.x, sceneRef.current.cube.rotation.y);
+        sceneRef.current.cube.rotation.x += deltaY * rotationSpeed; 
+        sceneRef.current.cube.rotation.y += deltaX * rotationSpeed;
+        // console.log("Cube after:", sceneRef.current.cube.rotation.x, sceneRef.current.cube.rotation.y);
       }
     };
 
@@ -174,99 +200,22 @@ const ThreeDModel = () => {
     activateIndicator.addEventListener('click', handleActivateClick);
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
-    gameArea.addEventListener('mousedown', handleMouseDown);
-    gameArea.domElement.addEventListener('mouseup', handleMouseUp);
-    gameArea.domElement.addEventListener('mousemove', handleMouseMove);
+    renderer.domElement.addEventListener('mousedown', handleMouseDown);
+    renderer.domElement.addEventListener('mouseup', handleMouseUp);
+    renderer.domElement.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('resize', handleResize);
 
-    console.log("Event listeners added to:", {
-      gameArea: gameArea,
-      rendererElement: renderer.domElement
-    });
-
-    // renderer.domElement.addEventListener('click', () => {
-    //   renderer.domElement.requestPointerLock();
-    // });
-
-    // if (document.pointerLockElement === renderer.domElement) {
-    //   document.addEventListener("mousemove", onMouseMove);
-    //   document.addEventListener("mouseup", onMouseUp);
-    //   document.addEventListener("mousedown", onMouseDown);
-    // } else {
-    //   document.removeEventListener("mousemove", onMouseMove);
-    //   document.removeEventListener("mouseup", onMouseUp);
-    //   document.removeEventListener("mousedown", onMouseDown);
-    // }
-
-    // function onMouseDown(event) {
-    //   isDragging = true;
-    //   prevX = event.clientX;
-    //   prevY = event.clientY;
-    // }
-
-    // function onMouseMove(event) {
-    //   if (!isDragging) return;
-
-    //   const deltaX = event.clientX - prevX;
-    //   const deltaY = event.clientY - prevY;
-
-    //   cube.rotation.y += deltaX * 0.01;
-    //   cube.rotation.x += deltaY * 0.01;
-
-    //   prevX = event.clientX;
-    //   prevY = event.clientY;
-    // }
-
-    // function onMouseUp() {
-    //   isDragging = false;
-    // }
-    // // document.addEventListener('keydown', handleKeyDown);
-    // // document.addEventListener('keyup', handleKeyUp);
-    // // window.addEventListener('resize', handleResize);
-
-    // //animation functions
-    // const adjustRotation = () => {
-    //   if (stateRef.current.isRotating) {
-    //     const { rotationX, rotationY } = stateRef.current;
-        
-    //     const qx = new THREE.Quaternion();
-    //     const qy = new THREE.Quaternion();
-
-    //     qy.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationY);
-    //     qx.setFromAxisAngle(new THREE.Vector3(1, 0, 0), rotationX);
-        
-    //     sceneRef.current.cube.quaternion.multiply(qy);
-    //     sceneRef.current.cube.quaternion.multiply(qx);
-        
-    //     stateRef.current.rotationX = 0;
-    //     stateRef.current.rotationY = 0;
-    //   }
-    // };
-    
-    // let lastTime = performance.now();
-
-    // renderer.domElement.addEventListener("mousedown", onMouseDown);
-    // renderer.domElement.addEventListener("mousemove", onMouseMove);
-    // renderer.domElement.addEventListener("mouseup", onMouseUp);
+    // console.log("Event listeners added");
+    // console.log("Canvas element:", renderer.domElement);
+    // console.log("Canvas parent:", renderer.domElement.parentElement);
+    // console.log("Canvas z-index:", window.getComputedStyle(renderer.domElement).zIndex);
+    // console.log("Canvas pointer-events:", window.getComputedStyle(renderer.domElement).pointerEvents);
 
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
 
-      // const now = performance.now();
-      // const deltaTime = (now - lastTime) / 1000;
-      // lastTime = now;
-
-      //rotation handling
-      if (stateRef.current.isRotating && stateRef.current.isActive) {
-        cube.rotation.x += stateRef.current.rotationX;
-        cube.rotation.y += stateRef.current.rotationY;
-
-        stateRef.current.rotationX = 0;
-        stateRef.current.rotationY = 0;
-      }
-
-      if (stateRef.current.isActive) {
-        // adjustRotation(deltaTime);
+      if (stateRef.current.isActive && sceneRef.current) {
+        const cube = sceneRef.current.cube;
         if (stateRef.current.moveForward) cube.position.z += movementSpeed;
         if (stateRef.current.moveBackward) cube.position.z -= movementSpeed;
         if (stateRef.current.moveLeft) cube.position.x += movementSpeed;

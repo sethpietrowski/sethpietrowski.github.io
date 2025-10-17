@@ -1,16 +1,3 @@
-// physics.js - physics calculations and convergence
-
-// import { velocityX, velocityY, pressure, density, temperature,
-//         rows, cols, cellWidth, cellHeight, isInside, isBoundary,
-//         totalIterations, controlPoints, scaleY, wallAngleTop,
-//         wallAngleBottom } from './state.js';
-// import { calculateArtificialViscosity } from './stability.js';
-
-// import { calculateResiduals, checkConvergence, storePreviousIteration, 
-//         updateConvergenceHistory } from './convergence.js';
-
-// import { updateSimulationStatus, updateConvergenceDisplay } from './loop.js';
-
 import { simulation, convergenceHistory, convergenceTolerances } from './core.js';
 import { getLocalRadius, getWallY } from './geometry.js';
 
@@ -18,29 +5,32 @@ import { getLocalRadius, getWallY } from './geometry.js';
 export function initializeFlow(simulationData) {
     const { rows, cols, isInside, isBoundary } = simulationData;
 
-    //inlet conditions (set values for now)
+    //inlet conditions
     const P_inlet = 300000; //kpa
     const V_inlet = 100;    // m/s
     const T_inlet = 300;    // K
-    const rho_inlet = 3.5;  // kg/m^3
+    const R = 287;          // J/kg*K (air)
+    const rho_inlet = P_inlet / (R * T_inlet);  // kg/m^3
 
     console.log('Initializing flow field...');
 
     //initialize interior cells with basic flow profile
     for (let row = 0; row < rows; row++) {
         for(let col = 0; col < cols; col++) {
-            if (isInside[row][col] && !isBoundary[row][col]) {
+            if (isInside[row][col]) {
                 //linear interpolation from inlet to exit
                 const progress = col / (cols - 1);
-                simulationData.velocityX[row][col] = V_inlet * (1 + progress * 0.5);
+                simulationData.velocityX[row][col] = V_inlet * (1 + progress * 1.0);
                 simulationData.velocityY[row][col] = 0.0;
-                simulationData.pressure[row][col] = P_inlet * (1 - progress * 0.3);
-                simulationData.density[row][col] = rho_inlet * (1 - progress * 0.2);
-                simulationData.temperature[row][col] = T_inlet * (1 - progress * 0.1);
-            } else if (isBoundary[row][col]) {
-                //wall boundary conditions
-                simulationData.velocityX[row][col] =0.0;
-                simulationData.velocityY[row][col] = 0.0;
+                simulationData.pressure[row][col] = P_inlet * (1 - progress * 0.5);
+                simulationData.temperature[row][col] = T_inlet * (1 - progress * 0.15);
+                simulationData.density[row][col] = simulationData.pressure[row][col] / (R * simulationData.temperature[row][col]);
+            
+                //boundary cells set to no-slip
+                if (isBoundary[row][col]) {
+                    simulationData.velocityX[row][col] = 0.0;
+                    simulationData.velocityY[row][col] = 0.0;
+                }
             }
         }
     }
@@ -53,6 +43,8 @@ export function initializeFlow(simulationData) {
 let prevVelocityX = [];
 let prevVelocityY = [];
 let prevPressure = [];
+let prevTemperature = [];
+let prevDensity = [];
 
 function initializePreviousArrays(rows, cols) {
     if (prevVelocityX.length ===0) {
@@ -149,8 +141,8 @@ function calculateResiduals(simulationData) {
 
                 const vx_left = velocityX[row][col - 1] || velocityX[row][col];
                 const vx_right = velocityX[row][col + 1] || velocityX[row][col];
-                const vy_up = velocityY[row - 1][col] || velocityX[row][col];
-                const vy_down = velocityY[row + 1][col] || velocityX[row][col];
+                const vy_up = velocityY[row - 1][col] || velocityY[row][col];
+                const vy_down = velocityY[row + 1][col] || velocityY[row][col];
 
                 //continuity - d(rho*u)/dx + d(rho*v)/dy = 0
                 const drhoDx = (rho_right * vx_right - rho_left * vx_left) / (2 * cellWidth);
@@ -316,7 +308,7 @@ export function updateFlowStabilized(simulationData) {
             const artificialViscosity = calculateArtificialViscosity(row, col, mach, rho, simulationData);
     
             //wall influence
-            const centerY = canvas.height / 2;
+            const centerY = canvasHeight / 2;
             const localRadius = getLocalRadius(xCanvas, controlPoints, scaleY, canvasHeight);
             const throatRadius = controlPoints.throat_radius * scaleY;
             const wallAngle = yCanvas < centerY ? (wallAngleTop ? wallAngleTop[col] : 0) : (wallAngleBottom ? wallAngleBottom [col] : 0);
@@ -414,7 +406,7 @@ export function updateFlowStabilized(simulationData) {
                 const bottomWallY = getWallY(xCanvas, false, controlPoints, scaleY, canvasHeight);
                 const distToTopWall = Math.abs(yCanvas - topWallY);
                 const distToBottomWall = Math.abs(yCanvas - bottomWallY);
-                const minDistToWall = Math.min(distToTopWall, disTopBottomWall);
+                const minDistToWall = Math.min(distToTopWall, distToBottomWall);
                 
                 const boundaryThickness = Math.max(cellWidth, cellHeight,) * 1.5;
                 const wallDistance = Math.min(1.0, minDistToWall  /boundaryThickness);
