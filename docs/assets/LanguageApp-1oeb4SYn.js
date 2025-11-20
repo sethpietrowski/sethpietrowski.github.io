@@ -1,4 +1,4 @@
-import{r as o,j as e,B as T}from"./index-CDocZZU0.js";import{c as l}from"./createLucideIcon-DF7XKXma.js";/**
+import{r as o,j as e,B as T}from"./index-DBuehOTN.js";import{c as l}from"./createLucideIcon-Mlrto2cx.js";/**
  * @license lucide-react v0.544.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -39,4 +39,4 @@ Coming back from Gao Yun's house, it was very late, and Cao Cao still hadn't sle
 
 他手里拿着刀，好像听到一个声音在说...
 He held a knife in his hand, as if he heard a voice saying...`,rows:10,className:"reading-form-textarea"})]})]}),e.jsxs("div",{className:"reading-button-group",children:[e.jsx("button",{onClick:()=>h(!1),className:"reading-btn reading-btn--secondary",children:"Cancel"}),e.jsxs("button",{onClick:B,disabled:!u.trim()||!y.trim(),className:"reading-btn reading-btn--primary",children:[e.jsx(Y,{className:"w-4 h-4"}),"Import Story"]})]})]})})]})};export{U as default};
-//# sourceMappingURL=LanguageApp-CLcEaXv8.js.map
+//# sourceMappingURL=LanguageApp-1oeb4SYn.js.map

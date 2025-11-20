@@ -38,14 +38,11 @@ export default function FEA() {
 
     const simulationData = useRef({
         controlPoints: {
-            inlet_radius: 20,
-            inlet_length: 50,
-            cp1x: 60, cp1y: 25,
-            cp2x: 100, cp2y: 40,
-            cp3x: 150, cp3y: 60,
-            throat_x: 90, throat_radius: 15,
-            switcher_x: 120, switcher_y: 35,
-            exit_x: 200, exit_radius: 30,
+            inlet_radius: 30,
+            inlet_length: 300,
+            throat_x: 400, throat_radius: 12,
+            exit_x: 900, exit_radius: 75,
+            theta_n_deg: 13, theta_e_deg: 3,
         },
         scaleY: 2,
         rows: 100,

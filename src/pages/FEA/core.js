@@ -102,7 +102,7 @@ function setupCanvasDimensions(canvas) {
 
     //scale control points with Canvas
     Object.keys(simulationData.controlPoints).forEach(key => {
-        if (key.includes('_x' || key === 'exit_x')) {
+        if (key.includes('_x' || key === 'exit_x' || key === 'throat_x')) {
             simulationData.controlPoints[key] *= scaleX;
         }
     });
